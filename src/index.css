@@ -1,0 +1,114 @@
+@import "tailwindcss";
+
+:root {
+  /* Light Theme - White & Pink (Feminine, Elegant) */
+  --bg-primary: #fff;
+  /* Very soft pink background */
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --text-primary: #334155;
+  /* Slate-700 (softer black) */
+  --text-secondary: #64748b;
+  /* Slate-500 */
+  --text-muted: #94a3b8;
+  /* Slate-400 */
+  --accent-primary: #161616;
+  /* Pink-600 */
+  --accent-secondary: #161616;
+  /* Rose-600 */
+  --accent-hover: #161616;
+  /* Pink-700 */
+  --border-color: #fce7f3;
+  --bg-button-analyses: #161616;
+
+  /* Pink-100 */
+  --shadow-color: 253, 228, 235;
+  /* Pink-100 shadow */
+}
+
+.dark {
+  /* Dark Theme - Dark Gray & Black (Masculine, Modern, High Contrast) */
+  --bg-primary: #121212;
+  /* Slate-950 */
+  --bg-secondary: #121212;
+  /* Slate-900 */
+  --bg-card: #121212;
+  /* Slate-800 */
+  --text-primary: #f8fafc;
+  /* Slate-50 */
+  --text-secondary: #cbd5e1;
+  /* Slate-300 */
+  --text-muted: #8d8d8d;
+  /* Slate-500 */
+  --accent-primary: #3b82f6;
+  /* Blue-500 - Strong contrast */
+  --accent-secondary: #60a5fa;
+  /* Blue-400 */
+  --border-color: #4e4e4e;
+  --bg-button-analyses: black;
+  /* Slate-700 */
+  --shadow-color: 0, 0, 0;
+  /* Slate-950 */
+}
+
+/* Base Styles */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Selection */
+::selection {
+  background-color: var(--accent-primary);
+  color: white;
+}
+
+/* Focus */
+*:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent-primary);
+}
+
+/* Common Classes we might use */
+.bg-theme-card {
+  background-color: var(--bg-card);
+}
+
+/* Animations */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, var(--bg-secondary) 25%, var(--border-color) 50%, var(--bg-secondary) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
