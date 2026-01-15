@@ -1,370 +1,677 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useScroll, useTransform } from 'framer-motion';
 import {
-    Camera, Zap, ArrowRight,
-    GithubIcon,
-    TwitterIcon,
-    LinkedinIcon
+    motion,
+    useScroll,
+    useTransform,
+    useSpring,
+    useMotionValue,
+    useVelocity,
+    useAnimationFrame
+} from 'framer-motion';
+import {
+    ArrowRight, ArrowUpRight, Play, Star,
+    Atom, ScanFace, ShieldCheck, Zap,
+    AlertTriangle, HeartHandshake, CalendarCheck, Sun, BookOpen,
+    Microscope, Lightbulb, Grid
 } from 'lucide-react';
 
+// --- ASSETS ---
 import { Header } from '../components/Header';
 import { ROUTES } from '../config';
-import FaceScanner from '../components/FaceScanner';
 
-import HeroImg from '../assets/heroimg.png'
-import HeroImg2 from '../assets/heroimg2.png'
+import HeroImg from '../assets/fullface2.png';
+import faceAnalysisImg from '../assets/facewithhandphone.png';
+import processAnalysisImg from '../assets/processAnalysis.png';
+import resultAnalysisImg from '../assets/resultAnalysis.png';
+import patchImg from '../assets/patch.png';
+import heatmapImg from '../assets/heatmap.png';
 
-import LogoJs from '../assets/logo/logo_js.png'
-import LogoExpress from '../assets/logo/logo_expressjs.png'
-import LogoMediapipe from '../assets/logo/logo_mediapipe.png'
-import LogoNodejs from '../assets/logo/logo_nodejs.png'
-import LogoReactjs from '../assets/logo/logo_reactjs.png'
-import LogoSupabase from '../assets/logo/logo_supabase.png'
-import LogoMobilenetv2 from '../assets/logo/logo_mobilenetv2.png'
+// Ingredients Assets
+import ingredients1 from '../assets/ingredients/1.png'
+import ingredients2 from '../assets/ingredients/2.png'
+import ingredients3 from '../assets/ingredients/3.png'
+import ingredients4 from '../assets/ingredients/4.png'
 
-// --- ANIMATION VARIANTS (Framer Motion untuk interaksi User saja) ---
+// Logo Assets
+import LogoJs from '../assets/logo/logo_js.png';
+import LogoExpress from '../assets/logo/logo_expressjs.png';
+import LogoMediapipe from '../assets/logo/logo_mediapipe.png';
+import LogoNodejs from '../assets/logo/logo_nodejs.png';
+import LogoReactjs from '../assets/logo/logo_reactjs.png';
+import LogoSupabase from '../assets/logo/logo_supabase.png';
+import LogoMobilenetv2 from '../assets/logo/logo_mobilenetv2.png';
 
-const transition = { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] };
+// Video
+import VideoDemo from '../assets/video/demo.mp4';
+import ClosingVid from '../assets/video/closing.mp4';
+import faceScan from '../assets/video/facescan2.mp4';
 
-const fadeInUp = {
-    hidden: { opacity: 0, y: 40 },
-    visible: { opacity: 1, y: 0, transition: transition }
-};
+// --- DATA DEFINITIONS ---
 
-const staggerContainer = {
-    hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: { staggerChildren: 0.15, delayChildren: 0.2 }
-    }
-};
-
-const scaleIn = {
-    hidden: { opacity: 0, scale: 0.9 },
-    visible: { opacity: 1, scale: 1, transition: transition }
-};
-
-// Optimasi Blob: Mengurangi frekuensi update animasi background
-const floatingBlob = {
-    animate: {
-        y: [0, -20, 0], // Range gerak diperkecil agar repaint area lebih sedikit
-        scale: [1, 1.05, 1],
-        transition: { duration: 10, repeat: Infinity, ease: "easeInOut" } // Durasi diperlambat
-    }
-};
-
-// --- DATA TECH STACK ---
 const TECH_STACK = [
-    { label: 'Frontend', value: 'React.js', image: LogoReactjs },
-    { label: 'Backend', value: 'Node.js', image: LogoNodejs },
-    { label: 'Backend', value: 'Express.js', image: LogoExpress },
-    { label: 'Database', value: 'Supabase', image: LogoSupabase },
-    { label: 'AI Model', value: 'MobileNetV2', image: LogoMobilenetv2 },
+    { label: 'Model', value: 'MobileNetV2', image: LogoMobilenetv2 },
     { label: 'Vision', value: 'MediaPipe', image: LogoMediapipe },
-    { label: 'Language', value: 'JavaScript', image: LogoJs },
+    { label: 'Frontend', value: 'React.js', image: LogoReactjs },
+    { label: 'Backend', value: 'Express.js', image: LogoExpress },
+    { label: 'Backend', value: 'Node.js', image: LogoNodejs },
+    { label: 'Database', value: 'Supabase', image: LogoSupabase },
+    { label: 'Lang', value: 'JavaScript', image: LogoJs },
 ];
 
-const HomePage = () => {
-    const { scrollYProgress } = useScroll();
-    const yHero = useTransform(scrollYProgress, [0, 1], [0, -100]);
+const ACTIVE_INGREDIENTS = [
+    {
+        id: 1,
+        name: "Anti-Acne Cluster",
+        role: "Inflammation Control",
+        text: "Kelompok bahan aktif seperti Salicylic Acid & Tea Tree Oil.",
+        image: ingredients1,
+        avatar: ingredients1,
+    },
+    {
+        id: 2,
+        name: "Sebum Control",
+        role: "Oil Regulation",
+        text: "Cluster Niacinamide & Zinc untuk mengontrol minyak berlebih.",
+        image: ingredients2,
+        avatar: ingredients2,
+    },
+    {
+        id: 3,
+        name: "Barrier Support",
+        role: "Hydration",
+        text: "Cluster Hyaluronic Acid & Ceramides untuk kulit normal/kering.",
+        image: ingredients3,
+        avatar: ingredients3,
+    },
+    {
+        id: 4,
+        name: "Exfoliating Agent",
+        role: "Texture Refining",
+        text: "AHA/BHA cluster untuk memperbaiki tekstur mikro kulit.",
+        image: ingredients4,
+        avatar: ingredients4,
+    }
+];
+
+// --- UTILITY COMPONENTS ---
+
+const ParallaxImage = ({ src, alt, className, speed = 1 }) => {
+    const ref = useRef(null);
+    const { scrollYProgress } = useScroll({
+        target: ref,
+        offset: ["start end", "end start"]
+    });
+
+    // Gerakan parallax dan scale
+    const y = useTransform(scrollYProgress, [0, 1], [-50 * speed, 50 * speed]);
+    const scale = useTransform(scrollYProgress, [0, 0.5, 1], [1.1, 1, 1.1]);
 
     return (
-        <div className="min-h-screen bg-white text-neutral-900 selection:bg-neutral-900 selection:text-white overflow-hidden font-sans">
-            <Header />
+        <div ref={ref} className={`flex items-center justify-center p-4 ${className}`}>
+            {/* --- PHONE FRAME CONTAINER --- */}
+            <div className="relative w-full h-full max-w-[95%] max-h-[95%]">
 
-            {/* --- INJECT CSS KHUSUS CAROUSEL --- */}
-            {/* Menggunakan Pure CSS Keyframes agar berjalan di GPU Thread (Sangat Halus) */}
-            <style>{`
-                @keyframes scroll-infinite {
-                    0% { transform: translate3d(0, 0, 0); }
-                    100% { transform: translate3d(-50%, 0, 0); }
-                }
-                .animate-marquee {
-                    animation: scroll-infinite 30s linear infinite;
-                    will-change: transform; /* Memberi tahu browser untuk optimasi layer */
-                }
-                /* Pause animasi saat hover (opsional) */
-                .animate-marquee:hover {
-                    animation-play-state: paused;
-                }
-            `}</style>
+                {/* 1. Body Handphone (Bezel & Frame) */}
+                <div className="relative w-full h-full bg-[#121212] border-[12px] md:border-[16px] border-[#121212] rounded-[3.5rem] shadow-2xl overflow-hidden ring-1 ring-white/10 z-10">
 
-            {/* --- ANIMATED BACKGROUND (Optimized) --- */}
-            {/* Pointer-events-none dan fixed position penting agar tidak memicu layout repaint */}
-            <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden transform-gpu">
-                <motion.div
-                    variants={floatingBlob}
-                    animate="animate"
-                    // Menggunakan translate-z-0 untuk force hardware acceleration
-                    className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-indigo-100/50 rounded-full blur-[80px] opacity-60 translate-z-0"
-                />
-                <motion.div
-                    variants={floatingBlob}
-                    animate="animate"
-                    transition={{ delay: 2 }}
-                    className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-indigo-50/70 rounded-full blur-[100px] opacity-70 translate-z-0"
-                />
+                    {/* 2. Dynamic Island / Notch (Top Center) */}
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 h-7 w-32 bg-black rounded-b-2xl z-30 pointer-events-none"></div>
+
+                    {/* 3. Screen Area (Masking the Parallax Image) */}
+                    <div className="relative w-full h-full bg-linear-to-t from-black/10 via-white to-white rounded-[2.5rem] overflow-hidden">
+
+                        {/* The Moving Image */}
+                        <motion.img
+                            style={{ y, scale }}
+                            src={src}
+                            alt={alt}
+                            className="w-full h-full object-cover will-change-transform"
+                        />
+
+                        {/* 4. Glass/Gloss Reflection Effect (Overlay) */}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-white/5 via-transparent to-transparent pointer-events-none z-20 rounded-[2.5rem]" />
+
+                        {/* Inner Border for depth */}
+                        <div className="absolute inset-0 border border-white/5 rounded-[2.5rem] pointer-events-none z-20"></div>
+                    </div>
+                </div>
+
+                {/* 5. Physical Buttons (Cosmetic side buttons) */}
+                {/* Power Button (Right) */}
+                <div className="absolute top-32 -right-[15px] md:-right-[19px] w-[3px] h-16 bg-[#222] rounded-r-md shadow-sm border-l border-white/10"></div>
+                {/* Volume Up (Left) */}
+                <div className="absolute top-32 -left-[15px] md:-left-[19px] w-[3px] h-12 bg-[#222] rounded-l-md shadow-sm border-r border-white/10"></div>
+                {/* Volume Down (Left) */}
+                <div className="absolute top-48 -left-[15px] md:-left-[19px] w-[3px] h-12 bg-[#222] rounded-l-md shadow-sm border-r border-white/10"></div>
+            </div>
+        </div>
+    );
+};
+
+const CardStackItem = ({ data, index }) => {
+    return (
+        <div className="sticky top-40 mb-20 lg:mb-40 last:mb-0">
+            <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 50 }}
+                whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                viewport={{ margin: "-100px" }}
+                transition={{ duration: 0.5 }}
+                className={`${data.color} rounded-[2.5rem] p-8 lg:p-12 shadow-xl border border-white/50 relative overflow-hidden h-[500px] flex flex-col justify-between`}
+            >
+                <div className="relative z-10">
+                    <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-6">
+                        {data.icon}
+                    </div>
+                    <h3 className="text-3xl font-medium mb-4">{data.title}</h3>
+                    <p className="text-neutral-600 text-lg max-w-sm">{data.desc}</p>
+                </div>
+                <div className="absolute right-0 bottom-0 w-full md:w-1/2 h-3/4 md:h-full translate-x-10 translate-y-10 md:translate-x-0 md:translate-y-0 rounded-tl-[3rem] overflow-hidden shadow-2xl border-t border-l border-white/50 bg-white">
+                    {data.isVideo ? (
+                        <video src={data.img} autoPlay muted loop playsInline className="w-full h-full object-cover" />
+                    ) : (
+                        <img src={data.img} alt={data.title} className="w-full h-full object-cover" />
+                    )}
+                </div>
+            </motion.div>
+        </div>
+    );
+};
+
+const HorizontalProcessSection = () => {
+    const targetRef = useRef(null);
+    const { scrollYProgress } = useScroll({ target: targetRef });
+    const x = useTransform(scrollYProgress, [0, 1], ["0%", "-66.66%"]);
+
+    const steps = [
+        { id: "01", title: "Smart Guidance", desc: "MediaPipe memvalidasi pencahayaan dan posisi wajah secara real-time untuk input standar.", img: faceAnalysisImg },
+        { id: "02", title: "Patch Analysis", desc: "Ekstraksi otomatis area Dahi, Pipi, dan Hidung untuk analisis tekstur mikro menggunakan MobileNetV2.", img: processAnalysisImg },
+        { id: "03", title: "Explainable AI", desc: "Diagnosis dilengkapi heatmap Grad-CAM untuk transparansi dan rekomendasi berbasis clustering.", img: resultAnalysisImg },
+    ];
+
+    return (
+        <section ref={targetRef} className="relative h-[300vh] bg-neutral-900 text-white">
+            <div className="sticky top-0 flex h-screen items-center overflow-hidden">
+                <motion.div style={{ x }} className="flex gap-0">
+                    {steps.map((step, i) => (
+                        <div key={i} className="w-screen h-screen flex flex-col md:flex-row items-center justify-center p-10 lg:p-20 shrink-0 gap-10">
+                            <div className="w-full md:w-1/2 space-y-6">
+                                <span className="text-8xl font-bold text-white/10 block">{step.id}</span>
+                                <h3 className="text-4xl md:text-6xl font-medium">{step.title}</h3>
+                                <p className="text-neutral-400 text-xl max-w-md leading-relaxed">{step.desc}</p>
+                            </div>
+                            <div className="w-full md:w-1/2 h-[40vh] md:h-[60vh] bg-neutral-800 rounded-[3rem] overflow-hidden relative shadow-2xl border border-white/10">
+                                <img src={step.img} alt={step.title} className="w-full h-full object-cover" />
+                                <div className="absolute inset-0 bg-gradient-to-tr from-black/40 to-transparent"></div>
+                            </div>
+                        </div>
+                    ))}
+                </motion.div>
+            </div>
+        </section>
+    );
+};
+
+const DailyRoutineSection = () => {
+    const ref = useRef(null);
+    const { scrollYProgress } = useScroll({
+        target: ref,
+        offset: ["start end", "end start"]
+    });
+
+    // Parallax logic: Kolom kiri naik lebih cepat, kolom kanan sedikit tertahan
+    const yLeft = useTransform(scrollYProgress, [0, 1], [100, -100]);
+    const yRight = useTransform(scrollYProgress, [0, 1], [0, -200]);
+    const opacity = useTransform(scrollYProgress, [0, 0.2, 0.9, 1], [0, 1, 1, 0]);
+
+    return (
+        <section ref={ref} className="py-20 lg:py-40 px-6 lg:px-16 bg-[#F8F8F7] relative z-10 overflow-hidden">
+            <div className="max-w-7xl mx-auto">
+
+                {/* Header Section */}
+                <div className="mb-24 flex flex-col md:flex-row items-end justify-between gap-10">
+                    <motion.div style={{ opacity }} className="max-w-2xl">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
+                            <span className="text-xs font-bold tracking-widest text-neutral-400 uppercase">Daily Monitoring</span>
+                        </div>
+                        <h2 className="text-5xl md:text-7xl font-medium tracking-tight leading-[0.9] text-[#111]">
+                            Your Skin <br />
+                            <span className="font-serif italic text-neutral-400">Journey.</span>
+                        </h2>
+                    </motion.div>
+                    <motion.p style={{ opacity }} className="text-neutral-500 text-lg max-w-sm leading-relaxed mb-2">
+                        Pantau progres kesehatan kulit harian Anda melalui dashboard terintegrasi yang mencatat setiap perubahan tekstur mikro.
+                    </motion.p>
+                </div>
+
+                {/* Grid Content - 1:1 Ratio Focus */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-20 items-center">
+
+                    {/* LEFT COLUMN (Calendar/Routine) */}
+                    <motion.div style={{ y: yLeft }} className="flex flex-col gap-8">
+                        {/* Card 1: Square Aspect Ratio */}
+                        <div className="group relative aspect-square w-full bg-white rounded-[2.5rem] border border-black/5 shadow-2xl shadow-neutral-200/50 overflow-hidden p-8 flex flex-col justify-between hover:border-black/10 transition-colors duration-500">
+
+                            <video src={faceScan} autoPlay muted playsInline loop className='absolute w-full h-full object-cover top-0 left-0 z-0 pointer-events-none opacity-90' />
+                            <div className="relative z-10 flex justify-between items-start">
+                                <div className="w-14 h-14 bg-neutral-900 rounded-2xl flex items-center justify-center text-white">
+                                    <CalendarCheck size={26} strokeWidth={1.5} />
+                                </div>
+                                <div className="bg-black/10 text-white px-4 py-1.5 rounded-full text-sm font-medium border border-white">
+                                    On Track
+                                </div>
+                            </div>
+
+                            {/* Dummy UI: Calendar Visual */}
+                            <div className="relative z-10 mt-auto text-white bg-black/10 rounded-2xl p-6 border border-white/20">
+                                <h3 className="text-3xl font-medium mb-2">Consistency Tracker</h3>
+                                <p className=" mb-8">Visualisasi konsistensi perawatan harian Anda.</p>
+
+                                <div className="flex justify-between items-end gap-2 h-32">
+                                    {[65, 40, 75, 50, 90, 85, 100].map((h, i) => (
+                                        <div key={i} className="w-full bg-neutral-100 rounded-t-xl relative overflow-hidden group-hover:bg-blue-50 transition-colors duration-500">
+                                            <motion.div
+                                                initial={{ height: 0 }}
+                                                whileInView={{ height: `${h}%` }}
+                                                transition={{ duration: 1, delay: 0.2 + (i * 0.1) }}
+                                                className="absolute bottom-0 w-full bg-neutral-900 rounded-t-xl"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    {/* RIGHT COLUMN (Analysis/Graph) */}
+                    <motion.div style={{ y: yRight }} className="flex flex-col gap-8 md:pt-32">
+                        {/* Card 2: Square Aspect Ratio */}
+                        <div className="group relative aspect-square w-full bg-[#111] rounded-[2.5rem] shadow-2xl overflow-hidden p-8 flex flex-col justify-between text-white">
+
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600 rounded-full blur-[100px] opacity-20 group-hover:opacity-30 transition-opacity duration-700" />
+                            <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-600 rounded-full blur-[100px] opacity-20 group-hover:opacity-30 transition-opacity duration-700" />
+
+                            <div className="relative z-10">
+                                <div className="flex items-center justify-between mb-8">
+                                    <div className="w-14 h-14 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/10">
+                                        <Microscope size={26} strokeWidth={1.5} />
+                                    </div>
+                                    <ArrowUpRight className="text-neutral-500 group-hover:text-white transition-colors" />
+                                </div>
+                                <h3 className="text-3xl font-medium mb-2">Deep Analysis</h3>
+                                <p className="text-neutral-400">Grafik perkembangan perbaikan tekstur kulit.</p>
+                            </div>
+
+                            {/* Dummy UI: Waveform/Graph */}
+                            <div className="relative z-10 w-full h-40 border-t border-white/10 mt-6 pt-6 flex items-end">
+                                <div className="w-full flex items-center justify-between text-xs text-neutral-500 font-mono mb-2 absolute top-4">
+                                    <span>ACNE</span>
+                                    <span>OILY</span>
+                                    <span>NORMAL</span>
+                                </div>
+
+                                {/* Simulated Curve */}
+                                <svg className="w-full h-full overflow-visible" viewBox="0 0 100 50" preserveAspectRatio="none">
+                                    <path
+                                        d="M0,50 C20,40 40,50 50,30 S80,10 100,5"
+                                        fill="none"
+                                        stroke="url(#gradientLine)"
+                                        strokeWidth="0.5"
+                                        className="drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]"
+                                    />
+                                    <path
+                                        d="M0,50 C20,40 40,50 50,30 S80,10 100,5 L100,50 L0,50"
+                                        fill="url(#gradientFill)"
+                                        className="opacity-20"
+                                    />
+                                    <defs>
+                                        <linearGradient id="gradientLine" x1="0" y1="0" x2="1" y2="0">
+                                            <stop offset="0%" stopColor="#404040" />
+                                            <stop offset="100%" stopColor="#ffffff" />
+                                        </linearGradient>
+                                        <linearGradient id="gradientFill" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="#ffffff" />
+                                            <stop offset="100%" stopColor="transparent" />
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                            </div>
+                        </div>
+
+                        {/* Additional Small Context Card */}
+                        <div className="bg-white p-6 rounded-[2rem] border border-neutral-100 flex items-center gap-6 shadow-lg shadow-neutral-100/50">
+                            <div className="w-12 h-12 bg-[#F2F2F0] rounded-full flex items-center justify-center shrink-0">
+                                <Sun size={20} className="text-orange-500" />
+                            </div>
+                            <div>
+                                <h4 className="font-medium text-lg">Morning Check</h4>
+                                <p className="text-sm text-neutral-500">Disarankan melakukan scan pada pukul 08:00 WIB.</p>
+                            </div>
+                        </div>
+                    </motion.div>
+
+                </div>
+            </div>
+        </section>
+    );
+};
+
+const DisclaimerSection = () => {
+    const targetRef = useRef(null);
+    const { scrollYProgress } = useScroll({
+        target: targetRef,
+        offset: ["start end", "end start"]
+    });
+
+    // Parallax Effects
+    // Background text bergerak lambat
+    const yBg = useTransform(scrollYProgress, [0, 1], ["-20%", "20%"]);
+    // Card bergerak lebih cepat (berlawanan arah sedikit untuk efek floating)
+    const yCard = useTransform(scrollYProgress, [0, 1], ["20%", "-20%"]);
+    // Opacity fade in/out agar transisi halus
+    const opacity = useTransform(scrollYProgress, [0, 0.3, 0.8, 1], [0, 1, 1, 0]);
+
+    return (
+        <section
+            ref={targetRef}
+            className="relative min-h-[150vh] flex items-center justify-center bg-[#050505] overflow-hidden py-40"
+        >
+
+            <motion.div
+                style={{ y: yBg, opacity: 0.1 }}
+                className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0"
+            >
+                <h1 className="text-[15vw] md:text-[20vw] font-bold text-white tracking-tighter leading-none text-center whitespace-nowrap">
+                    RESEARCH<br />ONLY
+                </h1>
+            </motion.div>
+
+            <motion.div
+                style={{ y: yCard, opacity }}
+                className="relative z-10 w-full max-w-3xl px-6"
+            >
+                <div className="relative bg-neutral-900/60 backdrop-blur-xl border border-white/10 p-10 md:p-16 rounded-[2.5rem] shadow-2xl overflow-hidden">
+
+                    {/* Decorative Top Line */}
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white to-transparent opacity-50" />
+
+                    <div className="flex flex-col items-center text-center">
+                        {/* Icon Wrapper */}
+                        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-neutral-800 to-black border border-white/10 flex items-center justify-center mb-10 shadow-lg group">
+                            <ShieldCheck size={36} className="text-neutral-400 group-hover:text-white transition-colors duration-500" />
+                        </div>
+
+                        {/* Title */}
+                        <h2 className="text-3xl md:text-5xl font-medium text-white tracking-tight mb-6">
+                            Academic Purpose
+                            <span className="block text-neutral-500 text-2xl md:text-3xl mt-2 font-serif italic">Disclaimer.</span>
+                        </h2>
+
+                        {/* Main Text */}
+                        <div className="space-y-6 text-lg md:text-xl leading-relaxed text-neutral-400 max-w-2xl font-light">
+                            <p>
+                                Sistem ini dikembangkan secara eksklusif untuk kebutuhan <strong className="text-white font-medium">Penelitian Skripsi</strong> di Universitas Siliwangi.
+                            </p>
+                            <p>
+                                Seluruh hasil analisis, prediksi, dan rekomendasi yang dihasilkan oleh model AI (MobileNetV2) bersifat komputasional dan
+                                <span className="text-white mx-1"> tidak menggantikan diagnosis klinis</span>
+                                dari Dermatolog atau profesional medis.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
+        </section>
+    );
+};
+
+
+const EmpowermentSection = () => {
+    const ref = useRef(null);
+    const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+
+    const x1 = useTransform(scrollYProgress, [0, 1], ["20%", "-20%"]);
+    const x2 = useTransform(scrollYProgress, [0, 1], ["-20%", "20%"]);
+
+    return (
+        <section ref={ref} className="py-32 bg-[#F8F8F7] overflow-hidden flex flex-col justify-center items-center relative">
+            <video
+                src={ClosingVid}
+                autoPlay
+                muted
+                playsInline
+                loop
+                className='absolute w-full h-full object-cover top-0 left-0 z-0 pointer-events-none opacity-90'
+            />
+            <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
+                <HeartHandshake size={400} />
             </div>
 
-            <main className="relative z-10">
+            <motion.div style={{ x: x1 }} className="whitespace-nowrap">
+                <h2 className="text-[10vw] font-bold text-neutral-300 leading-none">
+                    SMART <span className="text-[#fff]">INSIGHT</span> FOR
+                </h2>
+            </motion.div>
 
-                {/* --- HERO SECTION --- */}
-                <section className="relative flex justify-center items-center pt-32 pb-20 lg:pt-30 lg:pb-32 px-6 bg-white h-screen overflow-hidden">
-                    {/* Background Image: Added decoding async & optimize opacity */}
-                    <img src={HeroImg} alt="" decoding="async" className='right-0 top-30 h-full object-contain absolute opacity-80 pointer-events-none' />
-                    <img src={HeroImg2} alt="" decoding="async" className='left-0 top-30 h-full object-contain absolute opacity-80 pointer-events-none' />
+            <motion.div style={{ x: x2 }} className="whitespace-nowrap">
+                <h2 className="text-[10vw] font-bold text-neutral-300 leading-none">
+                    <span className="text-[#fff]">BETTER</span> SKIN CARE
+                </h2>
+            </motion.div>
+        </section>
+    );
+};
+
+
+// --- MAIN PAGE COMPONENT ---
+
+const HomePage = () => {
+    const containerRef = useRef(null);
+
+    return (
+        <div ref={containerRef} className="bg-[#F8F8F7] text-[#111] font-sans selection:bg-black selection:text-white">
+            <Header />
+
+            {/* SECTION 1: HERO (Aligned with Proposal Title/Method) */}
+            <section className="relative min-h-[120vh] w-full flex flex-col items-center pt-40 px-6">
+                <div className="sticky top-40 text-center z-10 space-y-6">
+                    <motion.div
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                        className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-neutral-200 bg-white/50 backdrop-blur-sm"
+                    >
+                        <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                        <span className="text-xs font-medium tracking-wide text-neutral-500">PATCH-BASED SKIN ANALYSIS</span>
+                    </motion.div>
+
+                    <motion.h1
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+                        className="text-6xl md:text-8xl lg:text-[7rem] font-medium tracking-tight leading-[0.9] text-center"
+                    >
+                        Scan. Analyze.<br />
+                        <span className="text-neutral-400 font-serif italic">Result.</span>
+                    </motion.h1>
+
+                    <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 1, delay: 0.4 }}
+                        className="max-w-xl mx-auto text-neutral-500 text-lg leading-relaxed"
+                    >
+                        Menggunakan MobileNetV2 dengan strategi patch-based untuk analisis tekstur mikro dan Smart Camera Guidance untuk standarisasi input real-time.
+                    </motion.p>
 
                     <motion.div
-                        style={{ y: yHero }}
-                        className="max-w-7xl mx-auto text-center relative z-10"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.5, delay: 0.6 }}
                     >
-                        <motion.div
-                            initial="hidden"
-                            animate="visible"
-                            variants={staggerContainer}
-                            className="max-w-4xl mx-auto space-y-8"
-                        >
-                            <motion.div variants={fadeInUp} className="flex justify-center">
-                                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-neutral-200 shadow-sm text-xs font-semibold text-neutral-900 uppercase tracking-wide hover:border-indigo-200 transition-colors cursor-default">
-                                    <Zap size={14} className="text-indigo-500 fill-indigo-500" />
-                                    <span>Powered by MobileNetV2</span>
-                                </div>
-                            </motion.div>
-
-                            <motion.h1 variants={fadeInUp} className="text-5xl lg:text-6xl font-bold tracking-tight text-neutral-900 leading-[1.05]">
-                                Understanding your skin <br className="hidden md:block" />
-                                <span className="text-transparent bg-clip-text bg-linear-to-r from-neutral-900 via-indigo-900 to-neutral-900">
-                                    powered by AI.
-                                </span>
-                            </motion.h1>
-
-                            <motion.p variants={fadeInUp} className="text-lg md:text-xl text-neutral-500 max-w-2xl mx-auto leading-relaxed">
-                                Get professional-grade skin analysis in seconds. Our deep learning model detects skin types and conditions with <span className="text-neutral-900 font-semibold">98% accuracy</span>.
-                            </motion.p>
-
-                            <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6">
-                                <Link to={ROUTES.ANALYZE}>
-                                    <motion.button
-                                        whileHover={{ scale: 1.05, boxShadow: "0 20px 40px -10px rgba(15, 23, 42, 0.3)" }}
-                                        whileTap={{ scale: 0.95 }}
-                                        className="px-10 py-5 bg-neutral-900 text-white rounded-full font-bold text-lg transition-all shadow-xl shadow-neutral-900/20 flex items-center gap-3 group"
-                                    >
-                                        <Camera size={20} className="group-hover:rotate-12 transition-transform" />
-                                        Start Analysis
-                                    </motion.button>
-                                </Link>
-                                <motion.button
-                                    whileHover={{ scale: 1.05, backgroundColor: "#f8fafc" }}
-                                    whileTap={{ scale: 0.95 }}
-                                    className="px-10 py-5 bg-white text-neutral-700 border border-neutral-200 rounded-full font-bold text-lg shadow-sm hover:shadow-md transition-all"
-                                >
-                                    Learn more
-                                </motion.button>
-                            </motion.div>
-                        </motion.div>
-                    </motion.div>
-                </section>
-
-                {/* --- TECH STACK INFINITE CAROUSEL (OPTIMIZED) --- */}
-                <section className="py-10 border-y border-neutral-100 bg-white/50 backdrop-blur-sm overflow-hidden transform-gpu">
-                    <div className="max-w-full mx-auto relative">
-                        {/* Gradient Mask */}
-                        <div className="absolute inset-y-0 left-0 w-20 md:w-40 bg-linear-to-r from-white to-transparent z-10 pointer-events-none" />
-                        <div className="absolute inset-y-0 right-0 w-20 md:w-40 bg-linear-to-l from-white to-transparent z-10 pointer-events-none" />
-
-                        {/* Container Overflow Hidden */}
-                        <div className="flex overflow-hidden w-full">
-                            {/* OPTIMASI UTAMA DI SINI:
-                                1. Menggunakan class 'animate-marquee' (defined di <style> atas).
-                                2. Tidak lagi menggunakan motion.div untuk pergerakan loop.
-                                3. 'w-max' agar konten tidak wrapping.
-                            */}
-                            <div className="flex w-max animate-marquee items-center">
-                                {/* Set 1 */}
-                                <div className="flex gap-16 md:gap-24 pl-16 md:pl-24">
-                                    {TECH_STACK.map((tech, idx) => (
-                                        <CarouselItem key={`t1-${idx}`} tech={tech} />
-                                    ))}
-                                </div>
-                                
-                                {/* Set 2 (Duplikat untuk efek seamless) */}
-                                <div className="flex gap-16 md:gap-24 pl-16 md:pl-94">
-                                    {TECH_STACK.map((tech, idx) => (
-                                        <CarouselItem key={`t2-${idx}`} tech={tech} />
-                                    ))}
-                                </div>
+                        <Link to={ROUTES?.ANALYZE || '#'} className="group relative inline-flex h-14 items-center justify-center overflow-hidden rounded-full bg-[#111] px-8 font-medium text-neutral-50 transition-all hover:bg-neutral-800 hover:w-52 w-48 mt-8">
+                            <div className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-12deg)_translateX(-100%)] group-hover:duration-1000 group-hover:[transform:skew(-12deg)_translateX(100%)]">
+                                <div className="relative h-full w-8 bg-white/20" />
                             </div>
+                            <span className="mr-2">Mulai Analisis</span>
+                            <ArrowRight size={18} className='group-hover:translate-x-1 transition-transform' />
+                        </Link>
+                    </motion.div>
+                </div>
+
+                {/* Parallax Hero Image (Landscape Mode with Device Frame) */}
+                <div className="relative w-full max-w-6xl mt-20 h-[60vh] md:h-[80vh] z-20 px-4 md:px-0">
+                    <ParallaxImage
+                        src={HeroImg}
+                        alt="Face Analysis Hero"
+                        className="w-full h-full"
+                        speed={1.2}
+                    />
+
+                    {/* <div className="absolute inset-4 md:inset-5 rounded-[2.5rem] bg-gradient-to-t from-black via-transparent to-transparent pointer-events-none z-20 border border-black/10" /> */}
+
+                    {/* Info Cards Overlay - Posisi dikembalikan ke pojok kiri bawah */}
+                    <div className="absolute bottom-10 left-10 md:bottom-16 md:left-16 text-white z-30">
+                        <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+
+                            {/* Card 1 */}
+                            <div className="bg-black/40 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-lg">
+                                <p className="text-xs uppercase tracking-widest opacity-80 mb-1 text-neutral-300">Architecture</p>
+                                <p className="text-2xl md:text-3xl font-light">MobileNetV2</p>
+                            </div>
+
+                            {/* Card 2 */}
+                            <div className="bg-black/40 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-lg hidden md:block">
+                                <p className="text-xs uppercase tracking-widest opacity-80 mb-1 text-neutral-300">Method</p>
+                                <p className="text-2xl md:text-3xl font-light">Patch-Based</p>
+                            </div>
+
                         </div>
                     </div>
-                </section>
+                </div>
+            </section>
 
-                {/* --- HOW IT WORKS --- */}
-                <section className="py-32 px-6 bg-neutral-50/50 border-t border-neutral-200 relative overflow-hidden">
-                    <div className="max-w-7xl mx-auto relative z-10">
-                        <div className="grid lg:grid-cols-2 gap-20 items-center">
+            {/* SECTION 2: STICKY CARDS (Core Research Components) */}
+            <section className="relative py-32 px-6 lg:px-16 bg-white">
+                <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-20">
+                    <div className="lg:w-1/3 h-fit sticky top-32">
+                        <h2 className="text-4xl md:text-5xl font-medium leading-tight mb-8">
+                            Metodologi<br />
+                            <span className="text-neutral-400 italic font-serif">Penelitian.</span>
+                        </h2>
+                        <p className="text-neutral-500 mb-8 leading-relaxed">
+                            Sistem mengintegrasikan empat komponen utama untuk mengatasi variabilitas input dan transparansi model AI.
+                        </p>
+                        <div className="flex flex-wrap gap-3">
+                            {TECH_STACK.map((tech, i) => (
+                                <div key={i} className="px-3 py-1.5 rounded-md bg-neutral-100 text-xs font-medium text-neutral-600 border border-neutral-200 flex items-center gap-2 hover:bg-neutral-200 transition-colors cursor-default">
+                                    <img src={tech.image} className="w-4 h-4 object-contain grayscale" alt="" />
+                                    {tech.value}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
 
-                            {/* Left: Content */}
+                    <div className="lg:w-2/3 space-y-24 lg:space-y-0 relative">
+                        {[
+                            {
+                                title: "Smart Camera Guidance",
+                                desc: "Standardisasi kualitas input secara real-time menggunakan MediaPipe untuk validasi pencahayaan dan posisi wajah.",
+                                icon: <ScanFace size={24} />,
+                                color: "bg-[#F2F2F0]",
+                                img: VideoDemo, // Ganti dengan demo face mesh jika ada
+                                isVideo: true
+                            },
+                            {
+                                title: "Patch-Based Learning",
+                                desc: "Model fokus pada tekstur mikro (pori & lesi) dengan mengekstrak area spesifik (Dahi, Pipi, Hidung) untuk menghindari bias fitur non-kulit.",
+                                icon: <Grid size={24} />,
+                                color: "bg-[#EAE8E4]",
+                                img: patchImg,
+                                isVideo: false
+                            },
+                            {
+                                title: "Explainable AI (XAI)",
+                                desc: "Implementasi Grad-CAM untuk menghasilkan heatmap yang memvisualisasikan area wajah penentu keputusan prediksi.",
+                                icon: <Lightbulb size={24} />,
+                                color: "bg-[#DFDCD7]",
+                                img: heatmapImg,
+                                isVideo: false
+                            }
+                        ].map((card, index) => (
+                            <CardStackItem key={index} data={card} index={index} />
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* SECTION 3: HORIZONTAL PROCESS */}
+            <HorizontalProcessSection />
+
+            {/* SECTION 4: MONITORING DASHBOARD (Daily Routine) */}
+            <DailyRoutineSection />
+
+            {/* SECTION 5: CLUSTERING RECOMMENDATIONS */}
+            <section className="py-32 bg-[#111] text-white rounded-t-[3rem] -mt-10 relative z-20">
+                <div className="max-w-7xl mx-auto px-6 lg:px-16">
+                    <div className="flex flex-col md:flex-row justify-between items-end mb-20 border-b border-white/10 pb-10">
+                        <div>
+                            <h2 className="text-4xl md:text-6xl font-medium tracking-tight">K-Means Recommendation</h2>
+                            <p className="text-neutral-400 mt-4 max-w-sm">
+                                Rekomendasi bahan aktif berdasarkan kemiripan fungsi (clustering) dan kondisi kulit terdeteksi.
+                            </p>
+                        </div>
+                        <div className="hidden md:block">
+                            <Atom size={48} className="text-white/20 animate-spin-slow" />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {ACTIVE_INGREDIENTS.map((item, i) => (
                             <motion.div
-                                initial="hidden"
-                                whileInView="visible"
-                                viewport={{ once: true, margin: "-100px" }}
-                                variants={staggerContainer}
-                                className="space-y-10"
+                                key={i}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.1 }}
+                                viewport={{ once: true }}
+                                className="group relative h-[400px] bg-neutral-900 rounded-3xl overflow-hidden cursor-pointer"
                             >
-                                <div className="space-y-4">
-                                    <motion.span variants={fadeInUp} className="text-indigo-600 font-bold tracking-wider text-sm uppercase">Simple Process</motion.span>
-                                    <motion.h2 variants={fadeInUp} className="text-4xl md:text-5xl font-bold text-neutral-900 leading-tight">
-                                        Skin analysis made <br /> simple and effective.
-                                    </motion.h2>
+                                <img src={item.image} alt={item.name} className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-110 transition-all duration-700 grayscale group-hover:grayscale-0" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+
+                                <div className="absolute bottom-0 left-0 p-8 w-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                                    <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2">{item.role}</p>
+                                    <h3 className="text-2xl font-medium text-white mb-2">{item.name}</h3>
+                                    <p className="text-white/60 text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">{item.text}</p>
                                 </div>
 
-                                <div className="space-y-8">
-                                    {[
-                                        { title: "Take a Selfie", text: "Ensure good lighting and center your face." },
-                                        { title: "AI Processing", text: "MobileNetV2 analyzes textures and pores." },
-                                        { title: "Get Results", text: "Receive personalized recommendations." }
-                                    ].map((item, idx) => (
-                                        <motion.div
-                                            key={idx}
-                                            variants={fadeInUp}
-                                            className="flex gap-6 group"
-                                        >
-                                            <div className="shrink-0 w-12 h-12 rounded-full bg-white border border-neutral-200 flex items-center justify-center shadow-sm group-hover:border-indigo-500 group-hover:bg-indigo-50 transition-colors">
-                                                <span className="font-bold text-neutral-400 group-hover:text-indigo-600 transition-colors">{idx + 1}</span>
-                                            </div>
-                                            <div>
-                                                <h4 className="text-xl font-bold text-neutral-900 mb-1 group-hover:text-indigo-700 transition-colors">{item.title}</h4>
-                                                <p className="text-neutral-500">{item.text}</p>
-                                            </div>
-                                        </motion.div>
-                                    ))}
+                                <div className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                    <ArrowUpRight size={18} />
                                 </div>
                             </motion.div>
-
-                            {/* Right: 3D FACE SCANNER */}
-                            <div className="relative h-[600px] flex items-center justify-center">
-                                {/* Blur diperkecil radiusnya untuk performa */}
-                                <div className="absolute inset-0 bg-indigo-500 blur-[80px] opacity-10 rounded-full" />
-                                <div className="relative w-full h-full bg-linear-60 from-transparent to-neutral-600 rounded-3xl overflow-hidden shadow-2xl shadow-neutral-900 flex flex-col transform-gpu">
-                                    <div className="flex-1 relative z-10 cursor-move">
-                                        <FaceScanner />
-                                    </div>
-
-                                    <div className="absolute bottom-8 right-8 z-20 pointer-events-none">
-                                        <div className="flex items-end flex-col gap-1">
-                                            <span className="text-4xl font-black text-white/90">SKinAI</span>
-                                            <span className="text-[10px] text-neutral-400 font-mono tracking-widest">PROCESSING UNIT</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
+                        ))}
                     </div>
-                </section>
+                </div>
+            </section>
 
-                {/* --- CTA SECTION --- */}
-                <section className="py-32 px-6 text-center bg-gray-50">
-                    <motion.div
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true }}
-                        variants={scaleIn}
-                        className="max-w-5xl mx-auto bg-white border border-neutral-100 shadow-2xl shadow-neutral-200/50 rounded-[3rem] p-12 md:p-24 relative overflow-hidden group transform-gpu"
-                    >
-                        {/* Background blobs statis atau animasi sangat lambat untuk performa */}
-                        <div className="absolute top-0 left-0 w-96 h-96 bg-indigo-300/30 rounded-full blur-[80px] -translate-x-1/3 -translate-y-1/3 pointer-events-none" />
-                        <div className="absolute bottom-0 right-0 w-96 h-96 bg-indigo-300/30 rounded-full blur-[80px] translate-x-1/3 translate-y-1/3 pointer-events-none" />
+            {/* SECTION 6: DISCLAIMER */}
+            <DisclaimerSection />
 
-                        <div className="relative z-10 space-y-10">
-                            <h2 className="text-4xl md:text-6xl font-bold text-neutral-900 tracking-tight leading-tight">
-                                Ready to transform <br /> your skin health?
-                            </h2>
+            {/* SECTION 7: EMPOWERMENT CLOSING */}
+            <EmpowermentSection />
 
-                            <p className="text-neutral-500 text-lg max-w-xl mx-auto">
-                                Join thousands of users who are making smarter, data-driven decisions for their skincare routine today.
-                            </p>
+            <footer className="bg-white py-12 px-6 lg:px-16 flex flex-col md:flex-row justify-between items-center gap-6">
+                <div className="text-2xl font-bold tracking-tight">SKinAI.</div>
+                <p className="text-neutral-500 text-sm">Penelitian Skripsi Teknik Informatika - Universitas Siliwangi.</p>
+                <div className="flex gap-6 text-sm font-medium">
+                    <a href="#" className="hover:underline">Github</a>
+                    <a href="#" className="hover:underline">Paper</a>
+                </div>
+            </footer>
 
-                            <Link to={ROUTES.CAMERA} className="inline-block">
-                                <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    className="px-10 py-5 bg-neutral-900 text-white rounded-full font-bold text-xl flex items-center gap-3 mx-auto hover:bg-neutral-800 transition-colors shadow-xl shadow-neutral-900/20"
-                                >
-                                    Get Started Now <ArrowRight size={22} />
-                                </motion.button>
-                            </Link>
-                        </div>
-                    </motion.div>
-                </section>
-
-                {/* --- FOOTER --- */}
-                <footer className="bg-white border-t border-neutral-200 pt-16 pb-8">
-                    <div className="max-w-7xl mx-auto px-6">
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-                            <div className="col-span-1 md:col-span-2 space-y-4">
-                                <div className="flex items-center gap-2 font-bold text-2xl text-neutral-900">
-                                    SKinAI
-                                </div>
-                                <p className="text-neutral-500 text-sm leading-relaxed max-w-xs">
-                                    Mendeteksi kondisi kulit dengan kekuatan Artificial Intelligence. Akurat, cepat, dan aman.
-                                </p>
-                                <div className="flex gap-4">
-                                    {[GithubIcon, TwitterIcon, LinkedinIcon].map((Icon, i) => (
-                                        <a key={i} href="#" className="p-2 rounded-full bg-neutral-100 text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 transition-all">
-                                            <Icon size={18} />
-                                        </a>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div>
-                                <h4 className="font-bold text-neutral-900 mb-4">Product</h4>
-                                <ul className="space-y-2 text-sm text-neutral-500">
-                                    {['Features', 'Technology', 'Dataset', 'Demo'].map((item) => (
-                                        <li key={item}><a href="#" className="hover:text-indigo-600 transition-colors">{item}</a></li>
-                                    ))}
-                                </ul>
-                            </div>
-
-                            <div>
-                                <h4 className="font-bold text-neutral-900 mb-4">Legal</h4>
-                                <ul className="space-y-2 text-sm text-neutral-500">
-                                    {['Privacy Policy', 'Terms of Use', 'Cookie Policy'].map((item) => (
-                                        <li key={item}><a href="#" className="hover:text-indigo-600 transition-colors">{item}</a></li>
-                                    ))}
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div className="pt-8 border-t border-neutral-100 flex flex-col md:flex-row justify-between items-center gap-4">
-                            <p className="text-neutral-400 text-sm">
-                                © {new Date().getFullYear()} SKinAI Inc. All rights reserved.
-                            </p>
-                            <div className="flex items-center gap-2 text-sm text-neutral-400">
-                                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                                System Operational
-                            </div>
-                        </div>
-                    </div>
-                </footer>
-            </main>
         </div>
     );
 }
-
-// Extracted Component untuk meminimalisir re-render berat
-const CarouselItem = React.memo(({ tech }) => (
-    <div className="flex items-center gap-4 shrink-0 opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-300 cursor-default group">
-        <div className="p-2 bg-neutral-50 rounded-xl border border-neutral-100 group-hover:bg-white group-hover:shadow-md transition-all">
-            <img src={tech.image} alt={tech.value} loading="lazy" decoding="async" className='w-10 h-10 object-contain' />
-        </div>
-        <div>
-            <h3 className="text-lg font-bold text-neutral-900 leading-tight">{tech.value}</h3>
-            <p className="text-neutral-400 text-[10px] font-bold uppercase tracking-widest">{tech.label}</p>
-        </div>
-    </div>
-));
 
 export default HomePage;

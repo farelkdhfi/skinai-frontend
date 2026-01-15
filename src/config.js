@@ -32,8 +32,8 @@ export const CAMERA_CONFIG = {
 
 // Validation Thresholds
 export const VALIDATION_THRESHOLDS = {
-    brightness: { min: 120, max: 200 }, 
-    roiMinArea: 0.4,                    
+    brightness: { min: 130, max: 200 }, 
+    roiMinArea: 0.6,                    
     landmarkConfidence: 0.9,            
     maxYaw: 15,                     
     maxPitch: 15,
