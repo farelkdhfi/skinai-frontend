@@ -463,7 +463,7 @@ const DisclaimerSection = () => {
     return (
         <section
             ref={targetRef}
-            className="relative min-h-[150vh] flex items-center justify-center bg-[#050505] overflow-hidden py-40"
+            className="relative min-h-[150vh] flex items-center justify-center bg-[#050505] overflow-hidden py-20"
         >
 
             <motion.div
@@ -710,7 +710,7 @@ const HomePage = () => {
 
             <footer className="bg-white py-12 px-6 md:px-16 flex flex-col md:flex-row justify-between items-center gap-6">
                 <div className="text-2xl font-bold tracking-tight">SKinAI.</div>
-                <p className="text-neutral-500 text-sm">Penelitian Skripsi Teknik Informatika - Universitas Siliwangi.</p>
+                <p className="text-neutral-500 text-sm text-center">Penelitian Skripsi Teknik Informatika - Universitas Siliwangi.</p>
                 <div className="flex gap-6 text-sm font-medium">
                     <a href="#" className="hover:underline">Github</a>
                     <a href="#" className="hover:underline">Paper</a>
