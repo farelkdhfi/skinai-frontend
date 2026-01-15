@@ -580,7 +580,7 @@ const HomePage = () => {
                         transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
                         className="text-6xl md:text-8xl  font-medium tracking-tight leading-[0.9] text-center"
                     >
-                        Scan. <br /> Analyze.<br />
+                        Scan. <br className='md:hidden block' /> Analyze.<br />
                         <span className="text-neutral-400 font-serif italic">Result.</span>
                     </motion.h1>
 
