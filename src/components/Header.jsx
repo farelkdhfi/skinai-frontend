@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion'; // Opsi A: Pakai hooks framer motion (lebih modern) atau Opsi B: Pakai native (saya pakai native sesuai kode asli Anda agar tidak perlu refactor besar)
 import { 
     Camera, LayoutDashboard, User, Menu, X, LogOut, ChevronRight, Sparkles 
 } from 'lucide-react';
@@ -12,16 +12,34 @@ import { useLanguage } from '../context/LanguageContext';
 export function Header() {
     const location = useLocation();
     const { isAuthenticated, logout } = useAuth();
-    const { t } = useLanguage(); // Masih menggunakan t() untuk teks, tapi switcher dihapus
+    const { t } = useLanguage(); 
     
     const [isScrolled, setIsScrolled] = useState(false);
+    const [isVisible, setIsVisible] = useState(true); // State untuk visibilitas header
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-    // Detect scroll to change header style
+    // Detect scroll direction and styling
     useEffect(() => {
+        let lastScrollY = window.scrollY;
+
         const handleScroll = () => {
-            setIsScrolled(window.scrollY > 20);
+            const currentScrollY = window.scrollY;
+            
+            // 1. Logika Style (Transparan vs Blur)
+            setIsScrolled(currentScrollY > 20);
+
+            // 2. Logika Hide/Show
+            if (currentScrollY > lastScrollY && currentScrollY > 50) {
+                // Jika scroll ke BAWAH dan posisi bukan di paling atas -> Sembunyikan
+                setIsVisible(false);
+            } else {
+                // Jika scroll ke ATAS atau berada di paling atas -> Munculkan
+                setIsVisible(true);
+            }
+
+            lastScrollY = currentScrollY;
         };
+
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
@@ -40,8 +58,10 @@ export function Header() {
         <>
             <motion.header
                 initial={{ y: -100 }}
-                animate={{ y: 0 }}
-                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }} // Cinematic easing
+                // Animate berdasarkan isVisible. 
+                // Jika Mobile Menu buka, header dipaksa tetap muncul (y: 0)
+                animate={{ y: (isVisible || isMobileMenuOpen) ? 0 : '-100%' }} 
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }} // Sedikit dipercepat durasinya agar responsif
                 className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
                     isScrolled || isMobileMenuOpen
                         ? 'bg-white/70 backdrop-blur-xl border-b border-zinc-200/50 py-3 shadow-sm'

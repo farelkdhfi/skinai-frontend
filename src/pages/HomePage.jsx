@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
     motion,
@@ -20,18 +20,18 @@ import {
 import { Header } from '../components/Header';
 import { ROUTES } from '../config';
 
-import HeroImg from '../assets/fullface2.png';
-import faceAnalysisImg from '../assets/facewithhandphone.png';
-import processAnalysisImg from '../assets/processAnalysis.png';
-import resultAnalysisImg from '../assets/resultAnalysis.png';
-import patchImg from '../assets/patch.png';
-import heatmapImg from '../assets/heatmap.png';
+import HeroImg from '../assets/fullface.png';
+import faceAnalysisImg from '../assets/facewithhandphone.jpg';
+import processAnalysisImg from '../assets/processAnalysis.jpg';
+import resultAnalysisImg from '../assets/resultAnalysis.jpg';
+import patchImg from '../assets/patch.jpg';
+import heatmapImg from '../assets/heatmap.jpg';
 
 // Ingredients Assets
-import ingredients1 from '../assets/ingredients/1.png'
-import ingredients2 from '../assets/ingredients/2.png'
-import ingredients3 from '../assets/ingredients/3.png'
-import ingredients4 from '../assets/ingredients/4.png'
+import ingredients1 from '../assets/ingredients/1.jpg'
+import ingredients2 from '../assets/ingredients/2.jpg'
+import ingredients3 from '../assets/ingredients/3.jpg'
+import ingredients4 from '../assets/ingredients/4.jpg'
 
 // Logo Assets
 import LogoJs from '../assets/logo/logo_js.png';
@@ -108,9 +108,9 @@ const ParallaxImage = ({ src, alt, className, speed = 1 }) => {
     const scale = useTransform(scrollYProgress, [0, 0.5, 1], [1.1, 1, 1.1]);
 
     return (
-        <div ref={ref} className={`flex items-center justify-center p-4 ${className}`}>
+        <div ref={ref} className={`flex items-center justify-center ${className} backdrop-blur-lg`}>
             {/* --- PHONE FRAME CONTAINER --- */}
-            <div className="relative w-full h-full max-w-[95%] max-h-[95%]">
+            <div className="relative w-full h-full md:max-w-[95%] md:max-h-[100%]">
 
                 {/* 1. Body Handphone (Bezel & Frame) */}
                 <div className="relative w-full h-full bg-[#121212] border-[12px] md:border-[16px] border-[#121212] rounded-[3.5rem] shadow-2xl overflow-hidden ring-1 ring-white/10 z-10">
@@ -151,22 +151,22 @@ const ParallaxImage = ({ src, alt, className, speed = 1 }) => {
 
 const CardStackItem = ({ data, index }) => {
     return (
-        <div className="sticky top-40 mb-20 lg:mb-40 last:mb-0">
+        <div className="sticky top-40 mb-20 md:mb-40 last:mb-0">
             <motion.div
                 initial={{ opacity: 0, scale: 0.9, y: 50 }}
                 whileInView={{ opacity: 1, scale: 1, y: 0 }}
                 viewport={{ margin: "-100px" }}
                 transition={{ duration: 0.5 }}
-                className={`${data.color} rounded-[2.5rem] p-8 lg:p-12 shadow-xl border border-white/50 relative overflow-hidden h-[500px] flex flex-col justify-between`}
+                className={`${data.color} rounded-[2.5rem] p-4 md:p-8 grid md:grid-cols-2 shadow-xl bg-neutral-100 relative overflow-hidden h-[500px]`}
             >
                 <div className="relative z-10">
-                    <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-6">
+                    <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-md mb-4 md:mb-6">
                         {data.icon}
                     </div>
-                    <h3 className="text-3xl font-medium mb-4">{data.title}</h3>
-                    <p className="text-neutral-600 text-lg max-w-sm">{data.desc}</p>
+                    <h3 className="md:text-3xl text-2xl font-medium md:mb-4">{data.title}</h3>
+                    <p className="text-neutral-600 md:text-lg text-sm max-w-sm">{data.desc}</p>
                 </div>
-                <div className="absolute right-0 bottom-0 w-full md:w-1/2 h-3/4 md:h-full translate-x-10 translate-y-10 md:translate-x-0 md:translate-y-0 rounded-tl-[3rem] overflow-hidden shadow-2xl border-t border-l border-white/50 bg-white">
+                <div className="md:absolute mt-4 md:mt-0 right-0 bottom-0 w-full md:w-1/2 h-full md:h-full  rounded-tl-[3rem] overflow-hidden shadow-2xl border-t border-l border-white/50 bg-white">
                     {data.isVideo ? (
                         <video src={data.img} autoPlay muted loop playsInline className="w-full h-full object-cover" />
                     ) : (
@@ -184,9 +184,9 @@ const HorizontalProcessSection = () => {
     const x = useTransform(scrollYProgress, [0, 1], ["0%", "-66.66%"]);
 
     const steps = [
-        { id: "01", title: "Smart Guidance", desc: "MediaPipe memvalidasi pencahayaan dan posisi wajah secara real-time untuk input standar.", img: faceAnalysisImg },
-        { id: "02", title: "Patch Analysis", desc: "Ekstraksi otomatis area Dahi, Pipi, dan Hidung untuk analisis tekstur mikro menggunakan MobileNetV2.", img: processAnalysisImg },
-        { id: "03", title: "Explainable AI", desc: "Diagnosis dilengkapi heatmap Grad-CAM untuk transparansi dan rekomendasi berbasis clustering.", img: resultAnalysisImg },
+        { id: "01", title: "Face Scan", desc: "Posisikan wajah Anda di depan kamera dalam pencahayaan yang cukup.", img: faceAnalysisImg },
+        { id: "02", title: "AI Analysis", desc: "Ekstraksi otomatis area Dahi, Pipi, dan Hidung untuk memindai tekstur, minyak, dan lesi kulit.", img: processAnalysisImg },
+        { id: "03", title: "Result", desc: "Diagnosis dilengkapi heatmap Grad-CAM untuk transparansi dan rekomendasi berbasis clustering.", img: resultAnalysisImg },
     ];
 
     return (
@@ -194,11 +194,11 @@ const HorizontalProcessSection = () => {
             <div className="sticky top-0 flex h-screen items-center overflow-hidden">
                 <motion.div style={{ x }} className="flex gap-0">
                     {steps.map((step, i) => (
-                        <div key={i} className="w-screen h-screen flex flex-col md:flex-row items-center justify-center p-10 lg:p-20 shrink-0 gap-10">
-                            <div className="w-full md:w-1/2 space-y-6">
-                                <span className="text-8xl font-bold text-white/10 block">{step.id}</span>
+                        <div key={i} className="w-screen h-screen flex flex-col md:flex-row items-center justify-center p-10 md:p-20 shrink-0 gap-5 md:gap-10">
+                            <div className="w-full md:w-1/2 space-y-5 md:space-y-6">
+                                <span className="md:text-8xl text-8xl font-bold text-white/10 block">{step.id}</span>
                                 <h3 className="text-4xl md:text-6xl font-medium">{step.title}</h3>
-                                <p className="text-neutral-400 text-xl max-w-md leading-relaxed">{step.desc}</p>
+                                <p className="text-neutral-400 text-sm md:text-xl max-w-md leading-relaxed">{step.desc}</p>
                             </div>
                             <div className="w-full md:w-1/2 h-[40vh] md:h-[60vh] bg-neutral-800 rounded-[3rem] overflow-hidden relative shadow-2xl border border-white/10">
                                 <img src={step.img} alt={step.title} className="w-full h-full object-cover" />
@@ -225,11 +225,11 @@ const DailyRoutineSection = () => {
     const opacity = useTransform(scrollYProgress, [0, 0.2, 0.9, 1], [0, 1, 1, 0]);
 
     return (
-        <section ref={ref} className="py-20 lg:py-40 px-6 lg:px-16 bg-[#F8F8F7] relative z-10 overflow-hidden">
+        <section ref={ref} className="py-20 px-6 md:px-16 bg-[#F8F8F7] relative z-10 overflow-hidden">
             <div className="max-w-7xl mx-auto">
 
                 {/* Header Section */}
-                <div className="mb-24 flex flex-col md:flex-row items-end justify-between gap-10">
+                <div className="mb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
                     <motion.div style={{ opacity }} className="max-w-2xl">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
@@ -246,7 +246,7 @@ const DailyRoutineSection = () => {
                 </div>
 
                 {/* Grid Content - 1:1 Ratio Focus */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-20 items-center">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-20 items-center">
 
                     {/* LEFT COLUMN (Calendar/Routine) */}
                     <motion.div style={{ y: yLeft }} className="flex flex-col gap-8">
@@ -263,7 +263,6 @@ const DailyRoutineSection = () => {
                                 </div>
                             </div>
 
-                            {/* Dummy UI: Calendar Visual */}
                             <div className="relative z-10 mt-auto text-white bg-black/10 rounded-2xl p-6 border border-white/20">
                                 <h3 className="text-3xl font-medium mb-2">Consistency Tracker</h3>
                                 <p className=" mb-8">Visualisasi konsistensi perawatan harian Anda.</p>
@@ -357,6 +356,95 @@ const DailyRoutineSection = () => {
     );
 };
 
+const RecommendationSection = () => {
+    const [activeIndex, setActiveIndex] = useState(0);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setActiveIndex((current) => (current + 1) % ACTIVE_INGREDIENTS.length);
+        }, 1000); // 3000ms = 3 detik
+
+        return () => clearInterval(interval);
+    }, []);
+
+    return (
+        <section className="py-20 bg-[#111] text-white rounded-t-[3rem] -mt-10 relative z-20">
+            <div className="max-w-7xl mx-auto px-6 md:px-16">
+                <div className="flex flex-col md:flex-row justify-between items-end mb-20 border-b border-white/10 pb-6 md:pb-10">
+                    <div>
+                        <h2 className="text-3xl md:text-6xl font-medium tracking-tight">K-Means Recommendation</h2>
+                        <p className="text-neutral-400 text-sm md:text-lg mt-4 max-w-sm">
+                            Rekomendasi bahan aktif berdasarkan kemiripan fungsi (clustering) dan kondisi kulit terdeteksi.
+                        </p>
+                    </div>
+                    <div className="hidden md:block">
+                        <Atom size={48} className="text-white/20 animate-spin-slow" />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    {ACTIVE_INGREDIENTS.map((item, i) => {
+                        // Cek apakah kartu ini sedang aktif (otomatis atau manual)
+                        const isActive = i === activeIndex;
+
+                        return (
+                            <motion.div
+                                key={i}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.1 }}
+                                viewport={{ once: true }}
+                                // Tambahkan event handler untuk interaksi manual
+                                onMouseEnter={() => setActiveIndex(i)}
+                                className={`group relative h-[400px] bg-neutral-900 rounded-3xl overflow-hidden cursor-pointer transition-all duration-500 border ${isActive ? 'border-white/20' : 'border-transparent'}`}
+                            >
+                                {/* Gambar Background */}
+                                <img 
+                                    src={item.image} 
+                                    alt={item.name} 
+                                    className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 
+                                        ${isActive ? 'opacity-80 scale-110 grayscale-0' : 'opacity-60 grayscale scale-100'}
+                                    `} 
+                                />
+                                
+                                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+
+                                {/* Konten Text Bawah */}
+                                <div 
+                                    className={`absolute bottom-0 left-0 p-8 w-full transition-transform duration-500 
+                                        ${isActive ? 'translate-y-0' : 'translate-y-4'}
+                                    `}
+                                >
+                                    <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2">{item.role}</p>
+                                    <h3 className="text-2xl font-medium text-white mb-2">{item.name}</h3>
+                                    
+                                    {/* Deskripsi yang muncul saat aktif */}
+                                    <p 
+                                        className={`text-white/60 text-sm transition-opacity duration-500 delay-100 
+                                            ${isActive ? 'opacity-100' : 'opacity-0'}
+                                        `}
+                                    >
+                                        {item.text}
+                                    </p>
+                                </div>
+
+                                {/* Icon Panah Pojok Kanan Atas */}
+                                <div 
+                                    className={`absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center transition-all duration-300 
+                                        ${isActive ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}
+                                    `}
+                                >
+                                    <ArrowUpRight size={18} />
+                                </div>
+                            </motion.div>
+                        );
+                    })}
+                </div>
+            </div>
+        </section>
+    );
+};
+
 const DisclaimerSection = () => {
     const targetRef = useRef(null);
     const { scrollYProgress } = useScroll({
@@ -409,7 +497,7 @@ const DisclaimerSection = () => {
                         </h2>
 
                         {/* Main Text */}
-                        <div className="space-y-6 text-lg md:text-xl leading-relaxed text-neutral-400 max-w-2xl font-light">
+                        <div className="space-y-6 text-sm md:text-xl leading-relaxed text-neutral-400 max-w-2xl font-light">
                             <p>
                                 Sistem ini dikembangkan secara eksklusif untuk kebutuhan <strong className="text-white font-medium">Penelitian Skripsi</strong> di Universitas Siliwangi.
                             </p>
@@ -473,9 +561,9 @@ const HomePage = () => {
         <div ref={containerRef} className="bg-[#F8F8F7] text-[#111] font-sans selection:bg-black selection:text-white">
             <Header />
 
-            {/* SECTION 1: HERO (Aligned with Proposal Title/Method) */}
-            <section className="relative min-h-[120vh] w-full flex flex-col items-center pt-40 px-6">
-                <div className="sticky top-40 text-center z-10 space-y-6">
+            {/* SECTION 1: HERO */}
+            <section className="relative w-full flex flex-col items-center px-6 pb-20">
+                <div className="sticky md:top-30 top-25 text-center z-10 space-y-6">
                     <motion.div
                         initial={{ opacity: 0, y: 50 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -490,7 +578,7 @@ const HomePage = () => {
                         initial={{ opacity: 0, y: 50 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-                        className="text-6xl md:text-8xl lg:text-[7rem] font-medium tracking-tight leading-[0.9] text-center"
+                        className="text-6xl md:text-8xl  font-medium tracking-tight leading-[0.9] text-center"
                     >
                         Scan. Analyze.<br />
                         <span className="text-neutral-400 font-serif italic">Result.</span>
@@ -500,17 +588,18 @@ const HomePage = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 1, delay: 0.4 }}
-                        className="max-w-xl mx-auto text-neutral-500 text-lg leading-relaxed"
+                        className="max-w-xl mx-auto text-neutral-500 text-sm md:text-lg leading-relaxed"
                     >
                         Menggunakan MobileNetV2 dengan strategi patch-based untuk analisis tekstur mikro dan Smart Camera Guidance untuk standarisasi input real-time.
                     </motion.p>
 
+                    {/*BUTTON */}
                     <motion.div
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.5, delay: 0.6 }}
                     >
-                        <Link to={ROUTES?.ANALYZE || '#'} className="group relative inline-flex h-14 items-center justify-center overflow-hidden rounded-full bg-[#111] px-8 font-medium text-neutral-50 transition-all hover:bg-neutral-800 hover:w-52 w-48 mt-8">
+                        <Link to={ROUTES?.ANALYZE || '#'} className="group relative inline-flex h-14 items-center justify-center overflow-hidden rounded-full bg-[#111] px-8 font-medium text-neutral-50 transition-all hover:bg-neutral-800 hover:w-52 w-48">
                             <div className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-12deg)_translateX(-100%)] group-hover:duration-1000 group-hover:[transform:skew(-12deg)_translateX(100%)]">
                                 <div className="relative h-full w-8 bg-white/20" />
                             </div>
@@ -521,7 +610,7 @@ const HomePage = () => {
                 </div>
 
                 {/* Parallax Hero Image (Landscape Mode with Device Frame) */}
-                <div className="relative w-full max-w-6xl mt-20 h-[60vh] md:h-[80vh] z-20 px-4 md:px-0">
+                <div className="relative w-full max-w-6xl mt-40 h-[70vh] md:h-[80vh] z-20 px-4 md:px-0">
                     <ParallaxImage
                         src={HeroImg}
                         alt="Face Analysis Hero"
@@ -529,22 +618,20 @@ const HomePage = () => {
                         speed={1.2}
                     />
 
-                    {/* <div className="absolute inset-4 md:inset-5 rounded-[2.5rem] bg-gradient-to-t from-black via-transparent to-transparent pointer-events-none z-20 border border-black/10" /> */}
-
                     {/* Info Cards Overlay - Posisi dikembalikan ke pojok kiri bawah */}
                     <div className="absolute bottom-10 left-10 md:bottom-16 md:left-16 text-white z-30">
                         <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
 
                             {/* Card 1 */}
                             <div className="bg-black/40 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-lg">
-                                <p className="text-xs uppercase tracking-widest opacity-80 mb-1 text-neutral-300">Architecture</p>
-                                <p className="text-2xl md:text-3xl font-light">MobileNetV2</p>
+                                <p className="text-xs uppercase tracking-widest opacity-80 mb-1 text-neutral-300">Powered by</p>
+                                <p className="text-sm md:text-3xl font-light">MobileNetV2</p>
                             </div>
 
                             {/* Card 2 */}
                             <div className="bg-black/40 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-lg hidden md:block">
                                 <p className="text-xs uppercase tracking-widest opacity-80 mb-1 text-neutral-300">Method</p>
-                                <p className="text-2xl md:text-3xl font-light">Patch-Based</p>
+                                <p className="text-sm md:text-3xl font-light">Patch-Based</p>
                             </div>
 
                         </div>
@@ -553,12 +640,12 @@ const HomePage = () => {
             </section>
 
             {/* SECTION 2: STICKY CARDS (Core Research Components) */}
-            <section className="relative py-32 px-6 lg:px-16 bg-white">
-                <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-20">
-                    <div className="lg:w-1/3 h-fit sticky top-32">
+            <section className="relative py-20 px-6 md:px-16 bg-white">
+                <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-20">
+                    <div className="md:w-1/3 h-fit sticky top-32">
                         <h2 className="text-4xl md:text-5xl font-medium leading-tight mb-8">
-                            Metodologi<br />
-                            <span className="text-neutral-400 italic font-serif">Penelitian.</span>
+                            Integrated<br />
+                            <span className="text-neutral-400 italic font-serif">Systems.</span>
                         </h2>
                         <p className="text-neutral-500 mb-8 leading-relaxed">
                             Sistem mengintegrasikan empat komponen utama untuk mengatasi variabilitas input dan transparansi model AI.
@@ -573,14 +660,14 @@ const HomePage = () => {
                         </div>
                     </div>
 
-                    <div className="lg:w-2/3 space-y-24 lg:space-y-0 relative">
+                    <div className="md:w-2/3 space-y-24 md:space-y-0 relative">
                         {[
                             {
                                 title: "Smart Camera Guidance",
                                 desc: "Standardisasi kualitas input secara real-time menggunakan MediaPipe untuk validasi pencahayaan dan posisi wajah.",
                                 icon: <ScanFace size={24} />,
                                 color: "bg-[#F2F2F0]",
-                                img: VideoDemo, // Ganti dengan demo face mesh jika ada
+                                img: VideoDemo,
                                 isVideo: true
                             },
                             {
@@ -613,47 +700,7 @@ const HomePage = () => {
             <DailyRoutineSection />
 
             {/* SECTION 5: CLUSTERING RECOMMENDATIONS */}
-            <section className="py-32 bg-[#111] text-white rounded-t-[3rem] -mt-10 relative z-20">
-                <div className="max-w-7xl mx-auto px-6 lg:px-16">
-                    <div className="flex flex-col md:flex-row justify-between items-end mb-20 border-b border-white/10 pb-10">
-                        <div>
-                            <h2 className="text-4xl md:text-6xl font-medium tracking-tight">K-Means Recommendation</h2>
-                            <p className="text-neutral-400 mt-4 max-w-sm">
-                                Rekomendasi bahan aktif berdasarkan kemiripan fungsi (clustering) dan kondisi kulit terdeteksi.
-                            </p>
-                        </div>
-                        <div className="hidden md:block">
-                            <Atom size={48} className="text-white/20 animate-spin-slow" />
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {ACTIVE_INGREDIENTS.map((item, i) => (
-                            <motion.div
-                                key={i}
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                transition={{ delay: i * 0.1 }}
-                                viewport={{ once: true }}
-                                className="group relative h-[400px] bg-neutral-900 rounded-3xl overflow-hidden cursor-pointer"
-                            >
-                                <img src={item.image} alt={item.name} className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-110 transition-all duration-700 grayscale group-hover:grayscale-0" />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
-
-                                <div className="absolute bottom-0 left-0 p-8 w-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                                    <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2">{item.role}</p>
-                                    <h3 className="text-2xl font-medium text-white mb-2">{item.name}</h3>
-                                    <p className="text-white/60 text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">{item.text}</p>
-                                </div>
-
-                                <div className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                    <ArrowUpRight size={18} />
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                </div>
-            </section>
+           <RecommendationSection />
 
             {/* SECTION 6: DISCLAIMER */}
             <DisclaimerSection />
@@ -661,7 +708,7 @@ const HomePage = () => {
             {/* SECTION 7: EMPOWERMENT CLOSING */}
             <EmpowermentSection />
 
-            <footer className="bg-white py-12 px-6 lg:px-16 flex flex-col md:flex-row justify-between items-center gap-6">
+            <footer className="bg-white py-12 px-6 md:px-16 flex flex-col md:flex-row justify-between items-center gap-6">
                 <div className="text-2xl font-bold tracking-tight">SKinAI.</div>
                 <p className="text-neutral-500 text-sm">Penelitian Skripsi Teknik Informatika - Universitas Siliwangi.</p>
                 <div className="flex gap-6 text-sm font-medium">
