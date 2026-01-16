@@ -1,4 +1,4 @@
-import React, { Activity, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
     motion,
@@ -160,7 +160,9 @@ const CardStackItem = ({ data, index }) => {
                 className={`${data.color} rounded-[2.5rem] p-4 md:p-8 grid md:grid-cols-2 shadow-xl bg-neutral-900 relative overflow-hidden h-[500px]`}
             >
                 <div className="relative z-10">
-                    <h1 className='font-bold text-8xl text-neutral-600 mb-4'>{data.num}</h1>
+                    <div className="w-14 h-14 bg-black rounded-2xl flex items-center justify-center shadow-md mb-4 md:mb-6">
+                        {data.icon}
+                    </div>
                     <h3 className="md:text-3xl text-2xl font-medium md:mb-4">{data.title}</h3>
                     <p className="text-neutral-600 md:text-lg text-sm max-w-sm">{data.desc}</p>
                 </div>
@@ -182,81 +184,33 @@ const CardStackItem = ({ data, index }) => {
 };
 
 const HorizontalProcessSection = () => {
-
-    function useMediaQuery(query) {
-        const [matches, setMatches] = useState(false);
-
-        useEffect(() => {
-            const media = window.matchMedia(query);
-            if (media.matches !== matches) {
-                setMatches(media.matches);
-            }
-            const listener = () => setMatches(media.matches);
-            media.addEventListener("change", listener);
-            return () => media.removeEventListener("change", listener);
-        }, [matches, query]);
-
-        return matches;
-    }
-
     const targetRef = useRef(null);
     const { scrollYProgress } = useScroll({ target: targetRef });
-    const isMobile = useMediaQuery("(max-width: 768px)");
-
-    const endRange = isMobile ? "-75%" : "-50%";
-
-    const x = useTransform(scrollYProgress, [0, 1], ["0%", endRange]);
+    const x = useTransform(scrollYProgress, [0, 1], ["0%", "-66.66%"]);
 
     const steps = [
-        { id: "01", title: "Face Capture", desc: "Pengambilan citra dengan panduan grid otomatis.", img: faceAnalysisImg },
-        { id: "02", title: "Segmentation", desc: "Pemisahan area ROI (Region of Interest) secara presisi.", img: processAnalysisImg },
-        { id: "03", title: "Result & Heatmap", desc: "Diagnosis akhir dengan validasi area terdampak.", img: resultAnalysisImg },
+        { id: "01", title: "Face Scan", desc: "Posisikan wajah Anda di depan kamera dalam pencahayaan yang cukup.", img: faceAnalysisImg },
+        { id: "02", title: "AI Analysis", desc: "Ekstraksi otomatis area Dahi, Pipi, dan Hidung untuk memindai tekstur, minyak, dan lesi kulit.", img: processAnalysisImg },
+        { id: "03", title: "Result", desc: "Diagnosis dilengkapi heatmap Grad-CAM untuk transparansi dan rekomendasi berbasis clustering.", img: resultAnalysisImg },
     ];
 
     return (
-        <section ref={targetRef} className="relative h-[300vh] bg-[#f2f2f0]">
-            <div className="sticky top-0 h-screen flex items-center overflow-hidden">
-                <div className="absolute top-10 left-6 md:left-12 z-20 max-w-3xl">
-                    <h2 className='text-5xl font-medium tracking-tight'>Easy to <span className='italic text-neutral-400 font-serif'>Use</span></h2>
-                </div>
-
-                <motion.div style={{ x }} className="flex gap-10 px-6 md:px-12">
-                    {/* Mapping Steps Card */}
+        <section ref={targetRef} className="relative h-[300vh] bg-white text-black">
+            <div className="sticky top-0 flex h-screen items-center overflow-hidden">
+                <motion.div style={{ x }} className="flex gap-0">
                     {steps.map((step, i) => (
-                        <div key={i} className="relative w-[85vw] md:w-[60vw] h-[70vh] flex-shrink-0 rounded-[3rem] overflow-hidden bg-white shadow-2xl border border-neutral-200 group">
-                            <div className="absolute top-8 left-8 md:top-12 md:left-12 z-20 text-white">
-                                <span className="text-8xl font-bold opacity-30 tracking-tighter mb-5">{step.id}</span>
-                                <h3 className="text-4xl md:text-5xl font-medium mt-4">{step.title}</h3>
-                                <p className="mt-4 max-w-md text-lg">{step.desc}</p>
+                        <div key={i} className="w-screen h-screen flex flex-col md:flex-row items-center justify-center p-10 md:p-20 shrink-0 gap-5 md:gap-10">
+                            <div className="w-full md:w-1/2 space-y-5 md:space-y-6">
+                                <span className="md:text-8xl text-8xl font-bold tex-black block">{step.id}</span>
+                                <h3 className="text-4xl md:text-6xl font-medium">{step.title}</h3>
+                                <p className="text-neutral-400 text-sm md:text-xl max-w-md leading-relaxed">{step.desc}</p>
                             </div>
-
-                            <img src={step.img} alt={step.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent pointer-events-none" />
+                            <div className="w-full md:w-1/2 h-[40vh] md:h-[60vh] rounded-[3rem] overflow-hidden relative shadow-2xl border border-white/10">
+                                <img src={step.img} alt={step.title} className="w-full h-full object-cover" />
+                                <div className="absolute inset-0 bg-gradient-to-tr from-black/40 to-transparent"></div>
+                            </div>
                         </div>
                     ))}
-
-                    {/* UBAHAN 2: Section Tombol "Mulai Analysis" */}
-                    <div className="w-[85vw] md:w-[40vw] h-[70vh] flex-shrink-0 flex flex-col justify-center items-start pl-8 md:pl-16">
-                        <h3 className="text-5xl md:text-6xl font-medium tracking-tighter mb-8 text-neutral-800">
-                            Ready to <br />
-                            <span className="font-serif italic text-neutral-500">Analysis?</span>
-                        </h3>
-                        <p className="text-lg text-neutral-600 mb-8 max-w-xs">
-                            Dapatkan hasil analisis kulit presisi dalam hitungan detik.
-                        </p>
-
-                        <button
-                            onClick={() => console.log("Navigate to analysis")}
-                            className="group relative px-8 py-4 bg-black text-white rounded-full text-xl font-medium overflow-hidden transition-all hover:pr-12"
-                        >
-                            <span className="relative z-10">Mulai sekarang</span>
-                            {/* Icon Arrow animasi saat hover */}
-                            <span className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-                                →
-                            </span>
-                        </button>
-                    </div>
-
                 </motion.div>
             </div>
         </section>
@@ -407,108 +361,94 @@ const DailyRoutineSection = () => {
     );
 };
 
-const Ingredients = () => {
-    const [active, setActive] = useState(0);
+const RecommendationSection = () => {
+    const [activeIndex, setActiveIndex] = useState(0);
 
-    // Mapping data dengan image yang sudah di-import
-    const items = [
-        {
-            title: "Salicylic Acid",
-            role: "Beta Hydroxy Acid",
-            desc: "Oil-soluble exfoliant that penetrates deep into pores to dissolve sebum.",
-            color: "bg-teal-900",
-            img: ingredients1 // Mapping ke image 1
-        },
-        {
-            title: "Niacinamide",
-            role: "Vitamin B3",
-            desc: "Strengthens barrier function and regulates oil production while soothing.",
-            color: "bg-indigo-900",
-            img: ingredients2 // Mapping ke image 2
-        },
-        {
-            title: "Ceramides",
-            role: "Lipids",
-            desc: "Essential fats that hold skin cells together, forming a protective layer.",
-            color: "bg-rose-900",
-            img: ingredients3 // Mapping ke image 3
-        },
-        {
-            title: "Retinol",
-            role: "Vitamin A",
-            desc: "Accelerates cell turnover and boosts collagen production.",
-            color: "bg-amber-900",
-            img: ingredients4 // Mapping ke image 4
-        }
-    ];
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setActiveIndex((current) => (current + 1) % ACTIVE_INGREDIENTS.length);
+        }, 1000); // 3000ms = 3 detik
+
+        return () => clearInterval(interval);
+    }, []);
 
     return (
-        <section className="py-32 bg-[#0A0A0A] text-white rounded-t-[3rem] -mt-12 relative z-20">
-            <div className="max-w-7xl mx-auto px-6">
-                <div className="mb-16 border-b border-white/10 pb-8 flex flex-col md:flex-row justify-between items-end">
+        <section className="py-20 bg-[#111] text-white rounded-t-[3rem] -mt-10 relative z-20">
+            <div className="max-w-7xl mx-auto px-6 md:px-16">
+                <div className="flex flex-col md:flex-row justify-between items-end mb-20 border-b border-white/10 pb-6 md:pb-10">
                     <div>
-                        <h2 className="text-3xl md:text-5xl font-medium tracking-tight">Personalized <br /><span className="text-neutral-500 font-serif italic">Recommendations.</span></h2>
+                        <h2 className="text-3xl md:text-6xl font-medium tracking-tight">K-Means Recommendation</h2>
+                        <p className="text-neutral-400 text-sm md:text-lg mt-4 max-w-sm">
+                            Rekomendasi bahan aktif berdasarkan kemiripan fungsi (clustering) dan kondisi kulit terdeteksi.
+                        </p>
                     </div>
-                    <div className="text-right mt-4 md:mt-0">
-                        <p className="text-neutral-400 text-sm">Based on K-Means Clustering</p>
+                    <div className="hidden md:block">
+                        <Atom size={48} className="text-white/20 animate-spin-slow" />
                     </div>
                 </div>
 
-                <div className="flex flex-col md:flex-row gap-4 h-[600px] md:h-[500px]">
-                    {items.map((item, i) => (
-                        <motion.div
-                            key={i}
-                            onMouseEnter={() => setActive(i)}
-                            onClick={() => setActive(i)}
-                            className={`relative rounded-[2rem] overflow-hidden cursor-pointer transition-all duration-700 ease-[0.16,1,0.3,1] ${active === i ? 'flex-[3]' : 'flex-[1]'}`}
-                        >
-                            {/* --- BACKGROUND IMAGE LAYER --- */}
-                            <div className="absolute inset-0 bg-neutral-900">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    {ACTIVE_INGREDIENTS.map((item, i) => {
+                        // Cek apakah kartu ini sedang aktif (otomatis atau manual)
+                        const isActive = i === activeIndex;
+
+                        return (
+                            <motion.div
+                                key={i}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.1 }}
+                                viewport={{ once: true }}
+                                // Tambahkan event handler untuk interaksi manual
+                                onMouseEnter={() => setActiveIndex(i)}
+                                className={`group relative h-[400px] bg-neutral-900 rounded-3xl overflow-hidden cursor-pointer transition-all duration-500 border ${isActive ? 'border-white/20' : 'border-transparent'}`}
+                            >
+                                {/* Gambar Background */}
                                 <img
-                                    src={item.img}
-                                    alt={item.title}
-                                    className={`w-full h-full object-cover transition-all duration-1000 
-                                        ${active === i ? 'opacity-60 scale-110' : 'opacity-30 scale-100 grayscale'}
+                                    src={item.image}
+                                    alt={item.name}
+                                    className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 
+                                        ${isActive ? 'opacity-80 scale-110 grayscale-0' : 'opacity-60 grayscale scale-100'}
                                     `}
                                 />
-                            </div>
 
-                            {/* Abstract Color Glow (Optional: retained for tinting effect) */}
-                            <div className={`absolute inset-0 opacity-40 ${item.color} mix-blend-overlay transition-opacity duration-500`}></div>
+                                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
 
-                            {/* Gradient Overlay for Text Readability */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90"></div>
+                                {/* Konten Text Bawah */}
+                                <div
+                                    className={`absolute bottom-0 left-0 p-8 w-full transition-transform duration-500 
+                                        ${isActive ? 'translate-y-0' : 'translate-y-4'}
+                                    `}
+                                >
+                                    <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2">{item.role}</p>
+                                    <h3 className="text-2xl font-medium text-white mb-2">{item.name}</h3>
 
-                            {/* CONTENT LAYER */}
-                            <div className="absolute inset-0 p-8 flex flex-col justify-between z-10">
-                                <div className="flex justify-between items-start">
-                                    <span className="text-xs font-bold tracking-widest uppercase opacity-80 border border-white/20 px-2 py-1 rounded-full backdrop-blur-md bg-black/20">
-                                        {item.role}
-                                    </span>
-                                    <div className={`w-8 h-8 rounded-full bg-white text-black flex items-center justify-center transition-transform duration-500 ${active === i ? 'rotate-45 opacity-100' : 'rotate-0 opacity-0'}`}>
-                                        <ArrowUpRight size={16} />
-                                    </div>
+                                    {/* Deskripsi yang muncul saat aktif */}
+                                    <p
+                                        className={`text-white/60 text-sm transition-opacity duration-500 delay-100 
+                                            ${isActive ? 'opacity-100' : 'opacity-0'}
+                                        `}
+                                    >
+                                        {item.text}
+                                    </p>
                                 </div>
 
-                                <div>
-                                    <h3 className={`font-medium transition-all duration-500 ${active === i ? 'text-4xl mb-4' : 'text-xl mb-0 rotate-0 md:-rotate-90 md:origin-bottom-left md:translate-x-8 md:-translate-y-8 whitespace-nowrap'}`}>
-                                        {item.title}
-                                    </h3>
-                                    <div className={`overflow-hidden transition-all duration-700 ${active === i ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
-                                        <p className="text-neutral-300 text-lg leading-relaxed max-w-lg shadow-black drop-shadow-md">
-                                            {item.desc}
-                                        </p>
-                                    </div>
+                                {/* Icon Panah Pojok Kanan Atas */}
+                                <div
+                                    className={`absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center transition-all duration-300 
+                                        ${isActive ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}
+                                    `}
+                                >
+                                    <ArrowUpRight size={18} />
                                 </div>
-                            </div>
-                        </motion.div>
-                    ))}
+                            </motion.div>
+                        );
+                    })}
                 </div>
             </div>
         </section>
     );
 };
-
 
 const DisclaimerSection = () => {
     const targetRef = useRef(null);
@@ -528,14 +468,14 @@ const DisclaimerSection = () => {
     return (
         <section
             ref={targetRef}
-            className="relative flex items-center justify-center md:min-h-[150vh] bg-white overflow-hidden py-20"
+            className="relative min-h-[150vh] flex items-center justify-center bg-[#050505] overflow-hidden py-20"
         >
 
             <motion.div
                 style={{ y: yBg, opacity: 0.1 }}
                 className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0"
             >
-                <h1 className="text-[30vw] md:text-[20vw] font-bold text-black/80 tracking-tighter leading-none text-center whitespace-nowrap">
+                <h1 className="text-[15vw] md:text-[20vw] font-bold text-white tracking-tighter leading-none text-center whitespace-nowrap">
                     RESEARCH<br />ONLY
                 </h1>
             </motion.div>
@@ -544,25 +484,31 @@ const DisclaimerSection = () => {
                 style={{ y: yCard, opacity }}
                 className="relative z-10 w-full max-w-3xl px-6"
             >
-                <div className="relative bg-neutral-100/60 backdrop-blur-md p-10 md:p-16 rounded-[2.5rem] shadow-2xl overflow-hidden">
+                <div className="relative bg-neutral-900/60 backdrop-blur-xl border border-white/10 p-10 md:p-16 rounded-[2.5rem] shadow-2xl overflow-hidden">
 
                     {/* Decorative Top Line */}
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-black to-transparent opacity-50" />
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white to-transparent opacity-50" />
 
                     <div className="flex flex-col items-center text-center">
+                        {/* Icon Wrapper */}
+                        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-neutral-800 to-black border border-white/10 flex items-center justify-center mb-10 shadow-lg group">
+                            <ShieldCheck size={36} className="text-neutral-400 group-hover:text-white transition-colors duration-500" />
+                        </div>
 
                         {/* Title */}
-                        <h2 className="text-3xl md:text-5xl font-medium text-black tracking-tight mb-6">
+                        <h2 className="text-3xl md:text-5xl font-medium text-white tracking-tight mb-6">
                             Academic Purpose
                             <span className="block text-neutral-500 text-2xl md:text-3xl mt-2 font-serif italic">Disclaimer.</span>
                         </h2>
 
                         {/* Main Text */}
-                        <div className="space-y-6 text-sm md:text-xl leading-relaxed text-neutral-600 max-w-2xl font-light">
-                            <p className='text-justify'>
-                                Sistem ini dikembangkan secara eksklusif untuk kebutuhan <strong className="text-black font-medium">Penelitian Skripsi</strong> di Universitas Siliwangi.
+                        <div className="space-y-6 text-sm md:text-xl leading-relaxed text-neutral-400 max-w-2xl font-light">
+                            <p>
+                                Sistem ini dikembangkan secara eksklusif untuk kebutuhan <strong className="text-white font-medium">Penelitian Skripsi</strong> di Universitas Siliwangi.
+                            </p>
+                            <p>
                                 Seluruh hasil analisis, prediksi, dan rekomendasi yang dihasilkan oleh model AI (MobileNetV2) bersifat komputasional dan
-                                <span className="text-black mx-1 font-medium"> tidak menggantikan diagnosis klinis</span>
+                                <span className="text-white mx-1"> tidak menggantikan diagnosis klinis</span>
                                 dari Dermatolog atau profesional medis.
                             </p>
                         </div>
@@ -582,7 +528,7 @@ const EmpowermentSection = () => {
     const x2 = useTransform(scrollYProgress, [0, 1], ["-20%", "20%"]);
 
     return (
-        <section ref={ref} className="py-20 bg-[#F8F8F7] overflow-hidden flex flex-col justify-center items-center relative h-[80vh]">
+        <section ref={ref} className="py-32 bg-[#F8F8F7] overflow-hidden flex flex-col justify-center items-center relative">
             <video
                 src={ClosingVid}
                 autoPlay
@@ -669,7 +615,7 @@ const HomePage = () => {
                 </div>
 
                 {/* Parallax Hero Image (Landscape Mode with Device Frame) */}
-                <div className="relative w-full md:max-w-[90rem] mt-40 h-[70vh] md:h-[80vh] z-20 px-4 md:px-0">
+                <div className="relative w-full max-w-6xl mt-40 h-[70vh] md:h-[80vh] z-20 px-4 md:px-0">
                     <ParallaxImage
                         src={HeroImg}
                         alt="Face Analysis Hero"
@@ -727,7 +673,6 @@ const HomePage = () => {
                                 icon: <ScanFace size={24} />,
                                 color: "bg-[#F2F2F0]",
                                 img: VideoDemo,
-                                num: '01',
                                 isVideo: true
                             },
                             {
@@ -736,8 +681,6 @@ const HomePage = () => {
                                 icon: <Grid size={24} />,
                                 color: "bg-[#EAE8E4]",
                                 img: patchImg,
-                                num: '02',
-
                                 isVideo: false
                             },
                             {
@@ -746,7 +689,6 @@ const HomePage = () => {
                                 icon: <Lightbulb size={24} />,
                                 color: "bg-[#DFDCD7]",
                                 img: heatmapImg,
-                                num: '03',
                                 isVideo: false
                             }
                         ].map((card, index) => (
@@ -763,7 +705,7 @@ const HomePage = () => {
             <DailyRoutineSection />
 
             {/* SECTION 5: CLUSTERING RECOMMENDATIONS */}
-            <Ingredients />
+            <RecommendationSection />
 
             {/* SECTION 6: DISCLAIMER */}
             <DisclaimerSection />
