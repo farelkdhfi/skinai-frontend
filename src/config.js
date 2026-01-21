@@ -15,12 +15,26 @@ export const FACE_MESH_CONFIG = {
 };
 
 // ROI Points for Face Analysis
-// Using MediaPipe FaceMesh landmark indices for accurate skin-only patches
+// ROI Points for Face Analysis (Updated to match Python logic)
 export const ROI_POINTS = {
-    forehead: { id: 151, label: 'Forehead' },   // Center forehead between eyebrows
-    nose: { id: 4, label: 'Nose' },              // Nose tip
-    leftCheek: { id: 50, label: 'L-Cheek' },     // Mid-cheek area (inner, away from ears)
-    rightCheek: { id: 280, label: 'R-Cheek' },   // Mid-cheek area (inner, away from ears)
+    forehead: { 
+        indices: [10, 338, 109, 151], 
+        label: 'Forehead' 
+    },
+    nose: { 
+        indices: [197, 195, 2, 102, 331], 
+        label: 'Nose' 
+    },
+    leftCheek: { 
+        // User's Left = Image Right (MediaPipe Indices: 425, 280, 266, 361)
+        indices: [425, 280, 266, 361], 
+        label: 'Left Cheek' 
+    },
+    rightCheek: { 
+        // User's Right = Image Left (MediaPipe Indices: 205, 50, 36, 132)
+        indices: [205, 50, 36, 132], 
+        label: 'Right Cheek' 
+    },
 };
 
 // Camera Configuration
@@ -32,11 +46,11 @@ export const CAMERA_CONFIG = {
 
 // Validation Thresholds
 export const VALIDATION_THRESHOLDS = {
-    brightness: { min: 130, max: 200 }, 
+    brightness: { min: 120, max: 200 }, 
     roiMinArea: 0.6,                    
     landmarkConfidence: 0.9,            
     maxYaw: 15,                     
-    maxPitch: 15,
+    maxPitch: 20,
     maxRoll: 15,
 };
 

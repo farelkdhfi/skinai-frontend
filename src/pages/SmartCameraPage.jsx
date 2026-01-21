@@ -329,57 +329,82 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
     };
 
     const handleCapture = async () => {
-        // Logic capture tetap sama, hanya memicu UI transition
         const source = mode === 'camera' ? webcamRef.current?.video : imgRef.current;
         if (!source) return;
-        if (requestRef.current) cancelAnimationFrame(requestRef.current);
+
+        // --- LOGIKA FREEZE ---
+        // Jika di mode kamera, ambil screenshot terakhir untuk ditampilkan sebagai freeze frame
+        if (mode === 'camera' && webcamRef.current) {
+            const screenshot = webcamRef.current.getScreenshot();
+            setCapturedFrame(screenshot);
+        }
+
+        // Hentikan deteksi wajah real-time agar mesh tidak bergerak di atas gambar beku
+        if (requestRef.current) {
+            cancelAnimationFrame(requestRef.current);
+            requestRef.current = null;
+        }
+        // ---------------------
 
         const width = mode === 'camera' ? source.videoWidth : source.naturalWidth;
         const height = mode === 'camera' ? source.videoHeight : source.naturalHeight;
         const canvas = processingCanvasRef.current;
         canvas.width = width; canvas.height = height;
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        ctx.drawImage(source, 0, 0);
 
-        if (mode === 'camera') setCapturedFrame(canvas.toDataURL('image/jpeg'));
-
-        if (!faceLandmarkerRef.current && mode === 'camera') {
-            setShowError(true); setCapturedFrame(null); requestRef.current = requestAnimationFrame(predictWebcam); return;
+        if (mode === 'camera') {
+            ctx.translate(width, 0);
+            ctx.scale(-1, 1);
         }
+        ctx.drawImage(source, 0, 0);
 
         try {
             let patches = {};
-            if (mode === 'upload' && !uploadFaceDetected) {
-                const resizedCanvas = document.createElement('canvas');
-                resizedCanvas.width = CROP_SIZE; resizedCanvas.height = CROP_SIZE;
-                resizedCanvas.getContext('2d').drawImage(canvas, 0, 0, width, height, 0, 0, CROP_SIZE, CROP_SIZE);
-                patches['full_image'] = resizedCanvas.toDataURL('image/jpeg');
-            } else {
-                const landmarks = currentLandmarks;
-                if (!landmarks || landmarks.length < 468) throw new Error("No face");
+            const landmarks = currentLandmarks;
+            if (!landmarks || landmarks.length < 468) throw new Error("No face");
 
-                // ... (Logic cropping tetap sama)
-                const leftEye = landmarks[33]; const rightEye = landmarks[263];
-                const eyeDistance = Math.sqrt(Math.pow((rightEye.x - leftEye.x) * width, 2) + Math.pow((rightEye.y - leftEye.y) * height, 2));
-                const dynamicCropSize = Math.min(224, Math.max(80, Math.round(eyeDistance * 0.9)));
+            Object.keys(ROI_POINTS).forEach((region) => {
+                const { indices } = ROI_POINTS[region];
+                const points = indices.map(idx => ({
+                    x: landmarks[idx].x * width,
+                    y: landmarks[idx].y * height
+                }));
 
-                Object.keys(ROI_POINTS).forEach((region) => {
-                    const point = landmarks[ROI_POINTS[region].id];
-                    const centerX = point.x * width; const centerY = point.y * height;
-                    const startX = Math.max(0, Math.min(width - dynamicCropSize, centerX - dynamicCropSize / 2));
-                    const startY = Math.max(0, Math.min(height - dynamicCropSize, centerY - dynamicCropSize / 2));
-                    const patchCanvas = document.createElement('canvas');
-                    patchCanvas.width = CROP_SIZE; patchCanvas.height = CROP_SIZE;
-                    patchCanvas.getContext('2d').drawImage(canvas, startX, startY, dynamicCropSize, dynamicCropSize, 0, 0, CROP_SIZE, CROP_SIZE);
-                    patches[region] = patchCanvas.toDataURL('image/jpeg');
-                });
-            }
+                const minX = Math.min(...points.map(p => p.x));
+                const maxX = Math.max(...points.map(p => p.x));
+                const minY = Math.min(...points.map(p => p.y));
+                const maxY = Math.max(...points.map(p => p.y));
+
+                const roiW = maxX - minX;
+                const roiH = maxY - minY;
+                const padding = 15;
+                const sideLength = Math.max(roiW, roiH) + (padding * 2);
+                const centerX = minX + roiW / 2;
+                const centerY = minY + roiH / 2;
+                const startX = centerX - (sideLength / 2);
+                const startY = centerY - (sideLength / 2);
+
+                const patchCanvas = document.createElement('canvas');
+                patchCanvas.width = CROP_SIZE;
+                patchCanvas.height = CROP_SIZE;
+                const pCtx = patchCanvas.getContext('2d');
+
+                pCtx.drawImage(
+                    canvas,
+                    startX, startY, sideLength, sideLength,
+                    0, 0, CROP_SIZE, CROP_SIZE
+                );
+
+                patches[region] = patchCanvas.toDataURL('image/jpeg', 0.95);
+            });
+
             await analyze(patches, canvas.toDataURL('image/jpeg'));
-            setCapturedFrame(null);
+            // Navigasi akan dipicu oleh AnalysisContext atau secara manual di sini
             navigate(ROUTES.RESULTS);
         } catch (err) {
             console.error('Analysis error:', err);
-            setCapturedFrame(null); setShowError(true);
+            setShowError(true);
+            setCapturedFrame(null); // Lepas freeze jika gagal
             if (mode === 'camera') requestRef.current = requestAnimationFrame(predictWebcam);
         }
     };
@@ -403,10 +428,15 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                         {/* Feed */}
                         {mode === 'camera' ? (
                             capturedFrame ? (
-                                <img src={capturedFrame} alt="Captured" className="w-full h-full object-cover scale-x-[-1] opacity-50" />
+                                <img
+                                    src={capturedFrame}
+                                    alt="Captured"
+                                    className="w-full h-full object-cover scale-x-[-1] opacity-100"
+                                />
                             ) : (
                                 <Webcam
                                     ref={webcamRef}
+                                    screenshotFormat="image/jpeg" // Tambahkan ini agar getScreenshot bekerja
                                     className="w-full h-full object-cover scale-x-[-1] brightness-110 contrast-105"
                                     videoConstraints={{ width: 720, height: 720, facingMode: "user", aspectRatio: 1 }}
                                 />

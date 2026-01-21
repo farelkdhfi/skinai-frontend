@@ -397,11 +397,11 @@ const HorizontalProcessSection = () => {
     ];
 
     return (
-        <section ref={targetRef} className="relative h-[300vh] bg-[#f2f2f0] py-20">
+        <section ref={targetRef} className="relative h-[300vh] bg-[#f2f2f0]">
             <div className="sticky top-0 h-screen flex items-center overflow-hidden">
-                <div className="absolute top-0 left-6 md:left-12 z-20 max-w-3xl">
+                {/* <div className="absolute top-0 left-6 md:left-12 z-20 max-w-3xl">
                     <h2 className='text-5xl font-medium tracking-tight'>Designed to be <span className='italic text-neutral-400 font-serif'>Effortless.</span></h2>
-                </div>
+                </div> */}
 
                 <motion.div style={{ x }} className="flex gap-10 px-6 md:px-12">
                     {/* Mapping Steps Card */}
@@ -1102,7 +1102,7 @@ const EmpowermentSection = () => {
 
 const Footer = () => {
     return (
-        <footer className="bg-white py-12 px-6 md:px-16 flex flex-col md:flex-row justify-between items-center gap-6">
+        <footer className="bg-white py-3 px-6 md:px-16 flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="text-2xl font-bold tracking-tight">SKinAI.</div>
             <p className="text-neutral-500 text-sm text-center">Penelitian Skripsi Teknik Informatika - Universitas Siliwangi.</p>
             <div className="flex gap-6 text-sm font-medium">
