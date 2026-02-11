@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Calendar, Info, TrendingUp, AlertCircle, Clock, Check, ExternalLink, Trash2, ArrowUpRight } from 'lucide-react';
+import { ArrowLeft, Calendar, Info, TrendingUp, AlertCircle, Check, ExternalLink, Trash2, Sparkles } from 'lucide-react';
 import { historyAPI } from '../services/api';
-import { Header } from '../components/Header';
 import { DIAGNOSIS_COLORS, ROUTES, API_URL } from '../config';
+import Header from '../components/Header';
 
 // --- Animation Variants ---
 const containerVariants = {
@@ -93,13 +93,14 @@ export default function HistoryDetailPage() {
             <Header />
 
             <motion.main
-                className="max-w-5xl mx-auto px-6 pt-30"
+                // Responsive Padding Top & Horizontal
+                className="max-w-5xl mx-auto px-4 md:px-6 pt-24 md:pt-32"
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
             >
                 {/* --- Top Navigation --- */}
-                <motion.div variants={itemVariants} className="flex items-center justify-between mb-12">
+                <motion.div variants={itemVariants} className="flex items-center justify-between mb-8 md:mb-12">
                     <Link to={ROUTES.DASHBOARD} className="group inline-flex items-center text-zinc-400 hover:text-zinc-900 transition-colors">
                         <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
                         <span className="text-sm font-medium">Back to Dashboard</span>
@@ -125,26 +126,30 @@ export default function HistoryDetailPage() {
                     </button>
                 </motion.div>
 
-                <div className="grid lg:grid-cols-12 gap-12">
+                {/* --- Main Grid Layout --- */}
+                {/* Mobile: 1 Column, Desktop: 12 Columns Split */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
 
                     {/* --- Left Column: Result & Stats --- */}
-                    <div className="lg:col-span-4 space-y-12">
+                    <div className="lg:col-span-4 space-y-8 md:space-y-12">
                         {/* Hero Result */}
                         <motion.div variants={itemVariants}>
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-50 border border-zinc-200 text-xs font-medium text-zinc-500 mb-6">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-50 border border-zinc-200 text-xs font-medium text-zinc-500 mb-4 md:mb-6">
                                 <span className={`w-2 h-2 rounded-full ${colors.bg.replace('bg-', 'bg-').replace('100', '500')}`}></span>
                                 Analysis Result
                             </div>
-                            <h1 className="text-6xl font-medium tracking-tighter text-zinc-900 mb-2 capitalize">
+                            
+                            {/* Responsive Text Size */}
+                            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-medium tracking-tighter text-zinc-900 mb-2 capitalize leading-tight">
                                 {analysis.skin_condition}
                             </h1>
-                            <p className="text-zinc-400 font-light text-lg">
+                            <p className="text-zinc-400 font-light text-base md:text-lg">
                                 Detected with high precision.
                             </p>
                         </motion.div>
 
                         {/* Stats Grid */}
-                        <motion.div variants={itemVariants} className="grid grid-cols-1 gap-6 border-t border-zinc-100 pt-8">
+                        <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-6 border-t border-zinc-100 pt-8">
                             <div className="flex items-start gap-4">
                                 <div className="p-2 rounded-lg bg-zinc-50 border border-zinc-100 text-zinc-900">
                                     <TrendingUp className="w-5 h-5" strokeWidth={1.5} />
@@ -160,14 +165,14 @@ export default function HistoryDetailPage() {
                                 </div>
                                 <div>
                                     <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Date Recorded</p>
-                                    <p className="text-lg font-light text-zinc-900">{date}</p>
+                                    <p className="text-base md:text-lg font-light text-zinc-900">{date}</p>
                                     <p className="text-sm text-zinc-400">{time}</p>
                                 </div>
                             </div>
                         </motion.div>
 
                         {/* Technical Info */}
-                        <motion.div variants={itemVariants} className="bg-indigo-50/50 rounded-2xl p-6 border border-indigo-100/50">
+                        <motion.div variants={itemVariants} className="bg-indigo-50/50 rounded-2xl p-5 md:p-6 border border-indigo-100/50">
                             <div className="flex items-center gap-2 mb-3 text-indigo-900">
                                 <Info className="w-4 h-4" />
                                 <span className="text-sm font-semibold">Methodology</span>
@@ -179,16 +184,17 @@ export default function HistoryDetailPage() {
                     </div>
 
                     {/* --- Right Column: Visuals & Ingredients --- */}
-                    <div className="lg:col-span-8 space-y-12">
+                    <div className="lg:col-span-8 space-y-8 md:space-y-12">
 
                         {/* 1. Focus Patches */}
                         {analysis.analysis_patches?.length > 0 && (
                             <motion.div variants={itemVariants}>
-                                <div className="flex items-baseline justify-between mb-6">
-                                    <h3 className="text-xl font-medium text-zinc-900">Regional Analysis</h3>
-                                    <span className="text-sm text-zinc-400 font-light">AI Focus Areas</span>
+                                <div className="flex items-baseline justify-between mb-4 md:mb-6">
+                                    <h3 className="text-lg md:text-xl font-medium text-zinc-900">Regional Analysis</h3>
+                                    <span className="text-xs md:text-sm text-zinc-400 font-light">AI Focus Areas</span>
                                 </div>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                {/* Mobile: 2 Col, Desktop: 4 Col */}
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                                     {analysis.analysis_patches.map((patch, idx) => (
                                         <PatchCard
                                             key={idx}
@@ -202,13 +208,14 @@ export default function HistoryDetailPage() {
                         )}
 
                         {/* 2. Full Image & Heatmap */}
-                        <motion.div variants={itemVariants} className="space-y-6">
+                        <motion.div variants={itemVariants} className="space-y-4 md:space-y-6">
                             <div className="flex items-baseline justify-between mb-2">
-                                <h3 className="text-xl font-medium text-zinc-900">Full Spectrum Scan</h3>
+                                <h3 className="text-lg md:text-xl font-medium text-zinc-900">Full Spectrum Scan</h3>
                             </div>
 
                             {analysis.image_url ? (
-                                <div className="grid md:grid-cols-2 gap-6">
+                                /* Mobile: Stacked, Desktop: Side-by-side */
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-3 group">
                                         <div className="aspect-4/3 bg-zinc-50 rounded-2xl overflow-hidden border border-zinc-100 relative">
                                             <img
@@ -235,7 +242,7 @@ export default function HistoryDetailPage() {
                                     )}
                                 </div>
                             ) : (
-                                <div className="p-12 border border-dashed border-zinc-200 rounded-2xl text-center text-zinc-400 font-light">
+                                <div className="p-8 md:p-12 border border-dashed border-zinc-200 rounded-2xl text-center text-zinc-400 font-light text-sm md:text-base">
                                     Source images not available.
                                 </div>
                             )}
@@ -244,7 +251,7 @@ export default function HistoryDetailPage() {
                         {/* 3. Recommendations */}
                         {analysis.recommended_ingredients && (
                             <motion.div variants={itemVariants} className="pt-8 border-t border-zinc-100">
-                                <h3 className="text-xl font-medium text-zinc-900 mb-8">Curated Ingredients</h3>
+                                <h3 className="text-lg md:text-xl font-medium text-zinc-900 mb-6 md:mb-8">Curated Ingredients</h3>
 
                                 <div className="space-y-8">
                                     {/* Primary */}
@@ -254,7 +261,8 @@ export default function HistoryDetailPage() {
                                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                                 <h4 className="text-sm font-semibold uppercase tracking-widest text-zinc-500">Highly Recommended</h4>
                                             </div>
-                                            <div className="grid md:grid-cols-2 gap-4">
+                                            {/* Mobile: 1 Col, Desktop: 2 Col */}
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 {analysis.recommended_ingredients.primary_ingredients.map((ing, i) => (
                                                     <IngredientCard key={i} ingredient={ing} type="primary" />
                                                 ))}
@@ -269,7 +277,7 @@ export default function HistoryDetailPage() {
                                                 <span className="w-1.5 h-1.5 rounded-full bg-zinc-300"></span>
                                                 <h4 className="text-sm font-semibold uppercase tracking-widest text-zinc-500">Alternatives</h4>
                                             </div>
-                                            <div className="grid md:grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 {analysis.recommended_ingredients.alternative_ingredients.map((ing, i) => (
                                                     <IngredientCard key={i} ingredient={ing} type="secondary" />
                                                 ))}
@@ -279,7 +287,7 @@ export default function HistoryDetailPage() {
 
                                     {/* Fallback for simple array format */}
                                     {Array.isArray(analysis.recommended_ingredients) && (
-                                        <div className="grid md:grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             {analysis.recommended_ingredients.map((ing, i) => (
                                                 <IngredientCard key={i} ingredient={ing} type="primary" />
                                             ))}
@@ -302,7 +310,7 @@ function PatchCard({ item, imageUrl, heatmapUrl }) {
 
     return (
         <div className="group relative">
-            <div className="aspect-square bg-zinc-50 rounded-2xl overflow-hidden border border-zinc-100 relative mb-3">
+            <div className="aspect-square bg-zinc-50 rounded-xl md:rounded-2xl overflow-hidden border border-zinc-100 relative mb-2 md:mb-3">
                 {imageUrl ? (
                     <img src={imageUrl} alt={item.region} className="w-full h-full object-cover" />
                 ) : (
@@ -313,7 +321,7 @@ function PatchCard({ item, imageUrl, heatmapUrl }) {
                 {heatmapUrl && (
                     <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white">
                         <img src={heatmapUrl} alt="Heatmap" className="w-full h-full object-cover" />
-                        <div className="absolute inset-x-0 bottom-0 p-2 bg-linear-to-t from-black/50 to-transparent text-center">
+                        <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/50 to-transparent text-center">
                             <span className="text-[10px] text-white font-medium tracking-wide">HEATMAP</span>
                         </div>
                     </div>
@@ -321,13 +329,13 @@ function PatchCard({ item, imageUrl, heatmapUrl }) {
             </div>
 
             <div className="flex justify-between items-start px-1">
-                <div>
-                    <p className="text-[10px] font-bold uppercase text-zinc-400 tracking-wider mb-0.5">{item.region}</p>
-                    <p className={`text-xs font-semibold ${colors.text.replace('text-', 'text-').replace('700', '900')}`}>
+                <div className="overflow-hidden">
+                    <p className="text-[9px] md:text-[10px] font-bold uppercase text-zinc-400 tracking-wider mb-0.5 truncate">{item.region}</p>
+                    <p className={`text-[10px] md:text-xs font-semibold truncate ${colors.text.replace('text-', 'text-').replace('700', '900')}`}>
                         {item.predicted_class}
                     </p>
                 </div>
-                <div className="text-[10px] font-mono text-zinc-400 bg-zinc-50 px-1.5 py-0.5 rounded border border-zinc-100">
+                <div className="text-[9px] md:text-[10px] font-mono text-zinc-400 bg-zinc-50 px-1.5 py-0.5 rounded border border-zinc-100">
                     {(item.confidence * 100).toFixed(0)}%
                 </div>
             </div>
@@ -340,36 +348,36 @@ function IngredientCard({ ingredient, type = 'primary' }) {
 
     return (
         <div className={`
-            group flex flex-col p-5 rounded-2xl border transition-all duration-300 h-full
+            group flex flex-col p-4 md:p-5 rounded-xl md:rounded-2xl border transition-all duration-300 h-full
             ${isPrimary
                 ? 'bg-white border-zinc-200 hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-900/5'
                 : 'bg-zinc-50/50 border-zinc-100 hover:bg-white hover:border-zinc-200'
             }
         `}>
-            <div className="flex justify-between items-start mb-3">
+            <div className="flex justify-between items-start mb-2 md:mb-3">
                 <div className={`
-                    w-8 h-8 rounded-full flex items-center justify-center
+                    w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center
                     ${isPrimary ? 'bg-emerald-50 text-emerald-600' : 'bg-zinc-100 text-zinc-400'}
                 `}>
-                    <Check className="w-4 h-4" strokeWidth={2} />
+                    <Check className="w-3.5 h-3.5 md:w-4 md:h-4" strokeWidth={2} />
                 </div>
                 {ingredient.reference_url && (
                     <a
                         href={ingredient.reference_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="opacity-0 group-hover:opacity-100 transition-opacity p-2 text-zinc-300 hover:text-indigo-600"
+                        className="opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity p-2 text-zinc-300 hover:text-indigo-600"
                         title="Read Research"
                     >
-                        <ExternalLink className="w-4 h-4" />
+                        <ExternalLink className="w-3.5 h-3.5 md:w-4 md:h-4" />
                     </a>
                 )}
             </div>
 
-            <h4 className="font-medium text-zinc-900 mb-2 group-hover:text-indigo-900 transition-colors">
+            <h4 className="font-medium text-sm md:text-base text-zinc-900 mb-1 md:mb-2 group-hover:text-indigo-900 transition-colors">
                 {ingredient.name}
             </h4>
-            <p className="text-sm text-zinc-500 font-light leading-relaxed line-clamp-3">
+            <p className="text-xs md:text-sm text-zinc-500 font-light leading-relaxed line-clamp-3">
                 {ingredient.what_it_does}
             </p>
         </div>

@@ -9,7 +9,7 @@ import {
 } from 'framer-motion';
 import {
     BarChart3, TrendingUp, Calendar, ArrowRight,
-    Activity, Target, Clock, Trash2, Plus, Sparkles,
+    Activity, Target, Trash2, Plus, Sparkles,
     ChevronRight, ScanLine, ArrowUpRight
 } from 'lucide-react';
 import {
@@ -17,11 +17,11 @@ import {
     Tooltip, ResponsiveContainer, PieChart, Pie, Cell
 } from 'recharts';
 
-import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { dashboardAPI, historyAPI } from '../services/api';
 import { DIAGNOSIS_COLORS, ROUTES } from '../config';
+import Header from '../components/Header';
 
 // --- UTILITY COMPONENTS (Reused for consistency) ---
 
@@ -78,7 +78,7 @@ const TiltCard = ({ children, className, noHover = false }) => {
 // 2. Stat Card (Glass Style)
 const StatCard = ({ icon: Icon, label, value, trend, highlight }) => (
     <div className={`
-        h-full p-6 rounded-[2rem] border relative overflow-hidden group transition-all duration-300
+        h-full p-5 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border relative overflow-hidden group transition-all duration-300
         ${highlight 
             ? 'bg-[#1A1A1A] border-[#333] text-white shadow-2xl' 
             : 'bg-white/60 backdrop-blur-xl border-white/40 hover:border-indigo-200/50 hover:bg-white/80'
@@ -89,22 +89,23 @@ const StatCard = ({ icon: Icon, label, value, trend, highlight }) => (
             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 rounded-full blur-[50px] -mr-10 -mt-10" />
         )}
         
-        <div className="relative z-10 flex flex-col h-full justify-between">
-            <div className="flex justify-between items-start mb-4">
-                <div className={`p-2.5 rounded-2xl ${highlight ? 'bg-white/10' : 'bg-[#F4F4F5]'}`}>
-                    <Icon className={`w-5 h-5 ${highlight ? 'text-white' : 'text-zinc-700'}`} strokeWidth={1.5} />
+        <div className="relative z-10 flex flex-col h-full justify-between gap-4 md:gap-0">
+            <div className="flex justify-between items-start mb-2 md:mb-4">
+                <div className={`p-2 md:p-2.5 rounded-xl md:rounded-2xl ${highlight ? 'bg-white/10' : 'bg-[#F4F4F5]'}`}>
+                    <Icon className={`w-4 h-4 md:w-5 md:h-5 ${highlight ? 'text-white' : 'text-zinc-700'}`} strokeWidth={1.5} />
                 </div>
-                {highlight && <ArrowUpRight className="text-zinc-500" size={20} />}
+                {highlight && <ArrowUpRight className="text-zinc-500 w-4 h-4 md:w-5 md:h-5" />}
             </div>
             
             <div>
-                <h3 className={`text-4xl lg:text-5xl font-light tracking-tight mb-2 ${highlight ? 'text-white' : 'text-zinc-900'}`}>
+                {/* Responsive Text Size for Stats */}
+                <h3 className={`text-3xl sm:text-4xl lg:text-5xl font-light tracking-tight mb-1 md:mb-2 ${highlight ? 'text-white' : 'text-zinc-900'}`}>
                     {value}
                 </h3>
-                <p className={`text-xs font-bold uppercase tracking-widest mb-1 ${highlight ? 'text-zinc-400' : 'text-zinc-400'}`}>
+                <p className={`text-[10px] md:text-xs font-bold uppercase tracking-widest mb-1 ${highlight ? 'text-zinc-400' : 'text-zinc-400'}`}>
                     {label}
                 </p>
-                <p className={`text-xs ${highlight ? 'text-indigo-400' : 'text-indigo-600'} flex items-center gap-1`}>
+                <p className={`text-[10px] md:text-xs ${highlight ? 'text-indigo-400' : 'text-indigo-600'} flex items-center gap-1`}>
                     {trend}
                 </p>
             </div>
@@ -127,7 +128,7 @@ export default function DashboardPage() {
     const { scrollY } = useScroll();
     const bgY = useTransform(scrollY, [0, 1000], [0, 300]);
 
-    // Data handling logic (Keep exactly as original)
+    // Data handling logic
     const handleDelete = async (id) => {
         try {
             await historyAPI.delete(id);
@@ -185,30 +186,30 @@ export default function DashboardPage() {
             <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
                 <motion.div 
                     style={{ y: bgY }}
-                    className="absolute -top-[10%] left-[20%] w-[1000px] h-[1000px] bg-gradient-to-b from-indigo-100/40 to-transparent rounded-full blur-[120px] opacity-60" 
+                    className="absolute -top-[10%] left-[20%] w-[600px] md:w-[1000px] h-[600px] md:h-[1000px] bg-gradient-to-b from-indigo-100/40 to-transparent rounded-full blur-[80px] md:blur-[120px] opacity-60" 
                 />
             </div>
 
-            <main className="relative z-10 max-w-7xl mx-auto px-6 pt-12 md:pt-32">
+            <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pt-24 md:pt-32">
                 
                 {/* --- HEADER SECTION --- */}
-                <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-16 gap-8">
+                <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-10 md:mb-16 gap-8">
                     <motion.div 
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.8 }}
                         className='max-w-2xl'
                     >
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-neutral-200 bg-white/50 backdrop-blur-sm mb-6">
-                            <Activity size={14} className="text-indigo-600 animate-pulse" />
-                            <span className="text-xs font-semibold tracking-wide text-neutral-500 uppercase">Live Dashboard</span>
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-neutral-200 bg-white/50 backdrop-blur-sm mb-4 md:mb-6">
+                            <Activity size={12} className="text-indigo-600 animate-pulse" />
+                            <span className="text-[10px] md:text-xs font-semibold tracking-wide text-neutral-500 uppercase">Live Dashboard</span>
                         </div>
 
-                        <h1 className="text-6xl md:text-7xl font-medium tracking-tighter text-zinc-900 leading-[0.9] mb-6">
+                        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-medium tracking-tighter text-zinc-900 leading-[0.95] md:leading-[0.9] mb-4 md:mb-6">
                             Skin Health <br/>
                             <span className="font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-zinc-400 to-zinc-200">Overview.</span>
                         </h1>
-                        <p className="text-zinc-500 font-light text-xl leading-relaxed max-w-lg">
+                        <p className="text-zinc-500 font-light text-base md:text-xl leading-relaxed max-w-lg">
                             Track dermatological progression. AI-driven insights for your optimal skin health.
                         </p>
                     </motion.div>
@@ -217,10 +218,11 @@ export default function DashboardPage() {
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.5, delay: 0.2 }}
+                        className="w-full sm:w-auto"
                     >
                         <Link
                             to={ROUTES.ANALYZE}
-                            className="group relative inline-flex h-14 items-center justify-center overflow-hidden rounded-full bg-[#111] px-8 font-medium text-white transition-all hover:bg-zinc-800 hover:w-56 w-48 shadow-xl shadow-zinc-200"
+                            className="group relative inline-flex h-12 md:h-14 items-center justify-center overflow-hidden rounded-full bg-[#111] px-8 font-medium text-white transition-all hover:bg-zinc-800 w-full sm:w-48 hover:sm:w-56 shadow-xl shadow-zinc-200"
                         >
                             <div className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-12deg)_translateX(-100%)] group-hover:duration-1000 group-hover:[transform:skew(-12deg)_translateX(100%)]">
                                 <div className="relative h-full w-8 bg-white/20" />
@@ -235,30 +237,31 @@ export default function DashboardPage() {
                     <motion.div 
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-white/40 backdrop-blur-md border border-white/60 rounded-2xl p-6 mb-12 flex items-center gap-4 shadow-sm"
+                        className="bg-white/40 backdrop-blur-md border border-white/60 rounded-2xl p-4 md:p-6 mb-8 md:mb-12 flex items-center gap-4 shadow-sm"
                     >
-                        <div className="p-3 bg-white rounded-full shadow-sm">
-                            <Activity className="w-5 h-5 text-indigo-600" />
+                        <div className="p-2 md:p-3 bg-white rounded-full shadow-sm shrink-0">
+                            <Activity className="w-4 h-4 md:w-5 md:h-5 text-indigo-600" />
                         </div>
-                        <p className="text-zinc-600">
+                        <p className="text-zinc-600 text-sm md:text-base">
                             <Link to={ROUTES.LOGIN} className="font-bold text-zinc-900 hover:underline">{t('login')}</Link> to save your progress and access detailed history.
                         </p>
                     </motion.div>
                 )}
 
                 {/* --- BENTO GRID STATS --- */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                    <TiltCard className="lg:col-span-1 h-[240px]">
+                {/* Responsive Grid: 1 col (mobile) -> 2 cols (tablet) -> 4 cols (desktop) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8">
+                    <TiltCard className="col-span-1 h-[200px] md:h-[240px]">
                         <StatCard
                             icon={BarChart3}
                             label={t('stats_total')}
                             value={displayStats.total_analyses}
                             trend="Lifetime Scans"
-                            highlight={true} // Highlight card
+                            highlight={true}
                         />
                     </TiltCard>
                     
-                    <TiltCard className="lg:col-span-1 h-[240px]">
+                    <TiltCard className="col-span-1 h-[200px] md:h-[240px]">
                         <StatCard
                             icon={Target}
                             label={t('stats_frequent')}
@@ -267,7 +270,7 @@ export default function DashboardPage() {
                         />
                     </TiltCard>
 
-                    <TiltCard className="lg:col-span-1 h-[240px]">
+                    <TiltCard className="col-span-1 h-[200px] md:h-[240px]">
                         <StatCard
                             icon={ScanLine}
                             label={t('stats_confidence')}
@@ -276,7 +279,7 @@ export default function DashboardPage() {
                         />
                     </TiltCard>
 
-                    <TiltCard className="lg:col-span-1 h-[240px]">
+                    <TiltCard className="col-span-1 h-[200px] md:h-[240px]">
                         <StatCard
                             icon={TrendingUp}
                             label={t('stats_improvement')}
@@ -287,20 +290,21 @@ export default function DashboardPage() {
                 </div>
 
                 {/* --- CHARTS SECTION --- */}
-                <div className="grid lg:grid-cols-3 gap-4 mb-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
                     
                     {/* Timeline Chart */}
                     <TiltCard className="lg:col-span-2" noHover={true}>
-                        <div className="bg-white/60 backdrop-blur-xl border border-white/40 rounded-[2.5rem] p-8 h-[400px] shadow-sm flex flex-col">
-                            <div className="flex justify-between items-start mb-6">
+                        {/* Height adjusted for mobile */}
+                        <div className="bg-white/60 backdrop-blur-xl border border-white/40 rounded-[2rem] md:rounded-[2.5rem] p-5 md:p-8 h-[300px] md:h-[400px] shadow-sm flex flex-col">
+                            <div className="flex justify-between items-start mb-4 md:mb-6">
                                 <div>
-                                    <h3 className="text-xl font-medium text-zinc-900">{t('chart_timeline')}</h3>
-                                    <p className="text-sm text-zinc-400">Analysis frequency over time</p>
+                                    <h3 className="text-lg md:text-xl font-medium text-zinc-900">{t('chart_timeline')}</h3>
+                                    <p className="text-xs md:text-sm text-zinc-400">Analysis frequency over time</p>
                                 </div>
-                                <Calendar className="text-zinc-300" />
+                                <Calendar className="text-zinc-300 w-5 h-5 md:w-6 md:h-6" />
                             </div>
                             
-                            <div className="flex-1 w-full">
+                            <div className="flex-1 w-full -ml-2">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <AreaChart data={displayTrend}>
                                         <defs>
@@ -310,8 +314,8 @@ export default function DashboardPage() {
                                             </linearGradient>
                                         </defs>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e4e4e7" strokeOpacity={0.5} />
-                                        <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fill: '#a1a1aa', fontSize: 12}} dy={10} />
-                                        <YAxis axisLine={false} tickLine={false} tick={{fill: '#a1a1aa', fontSize: 12}} />
+                                        <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fill: '#a1a1aa', fontSize: 10}} dy={10} />
+                                        <YAxis axisLine={false} tickLine={false} tick={{fill: '#a1a1aa', fontSize: 10}} />
                                         <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#6366f1', strokeWidth: 1, strokeDasharray: '5 5' }} />
                                         <Area 
                                             type="monotone" 
@@ -329,9 +333,9 @@ export default function DashboardPage() {
 
                     {/* Distribution Chart */}
                     <TiltCard className="lg:col-span-1" noHover={true}>
-                        <div className="bg-white/60 backdrop-blur-xl border border-white/40 rounded-[2.5rem] p-8 h-[400px] shadow-sm flex flex-col relative overflow-hidden">
-                            <h3 className="text-xl font-medium text-zinc-900 mb-1">{t('chart_distribution')}</h3>
-                            <p className="text-sm text-zinc-400 mb-4">Condition Ratio</p>
+                        <div className="bg-white/60 backdrop-blur-xl border border-white/40 rounded-[2rem] md:rounded-[2.5rem] p-5 md:p-8 h-[300px] md:h-[400px] shadow-sm flex flex-col relative overflow-hidden">
+                            <h3 className="text-lg md:text-xl font-medium text-zinc-900 mb-1">{t('chart_distribution')}</h3>
+                            <p className="text-xs md:text-sm text-zinc-400 mb-2 md:mb-4">Condition Ratio</p>
 
                             <div className="flex-1 relative">
                                 <ResponsiveContainer width="100%" height="100%">
@@ -339,7 +343,7 @@ export default function DashboardPage() {
                                         <Pie
                                             data={displayDistribution}
                                             cx="50%" cy="50%"
-                                            innerRadius={60} outerRadius={80}
+                                            innerRadius={50} outerRadius={70}
                                             dataKey="value"
                                             paddingAngle={5}
                                             stroke="none"
@@ -354,17 +358,17 @@ export default function DashboardPage() {
                                 </ResponsiveContainer>
                                 
                                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                    <span className="text-4xl font-light text-zinc-900">{displayStats.total_analyses}</span>
+                                    <span className="text-3xl md:text-4xl font-light text-zinc-900">{displayStats.total_analyses}</span>
                                     <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Total</span>
                                 </div>
                             </div>
 
-                            <div className="mt-4 space-y-2">
+                            <div className="mt-2 md:mt-4 space-y-1 md:space-y-2 overflow-y-auto max-h-[80px] md:max-h-none">
                                 {displayDistribution.map((entry, index) => (
-                                    <div key={index} className="flex items-center justify-between text-sm">
+                                    <div key={index} className="flex items-center justify-between text-xs md:text-sm">
                                         <div className="flex items-center gap-2">
                                             <span className="w-2 h-2 rounded-full" style={{ backgroundColor: DIAGNOSIS_COLORS[entry.name]?.hex || '#e4e4e7' }} />
-                                            <span className="text-zinc-600">{entry.name}</span>
+                                            <span className="text-zinc-600 truncate max-w-[100px]">{entry.name}</span>
                                         </div>
                                         <span className="font-mono text-zinc-400">
                                             {hasData ? `${((entry.value / displayStats.total_analyses) * 100).toFixed(0)}%` : '-'}
@@ -378,17 +382,18 @@ export default function DashboardPage() {
 
                 {/* --- RECENT HISTORY LIST --- */}
                 <TiltCard className="w-full" noHover={true}>
-                    <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-[2.5rem] overflow-hidden shadow-sm">
-                        <div className="p-8 border-b border-zinc-100 flex items-center justify-between bg-white/50">
+                    <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-sm">
+                        <div className="p-5 md:p-8 border-b border-zinc-100 flex items-center justify-between bg-white/50">
                             <div>
-                                <h3 className="font-medium text-xl text-zinc-900 flex items-center gap-2">
+                                <h3 className="font-medium text-lg md:text-xl text-zinc-900 flex items-center gap-2">
                                     Recent Analysis
                                 </h3>
                             </div>
-                            <Link to={ROUTES.HISTORY || '#'} className="group flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-indigo-600 transition-colors">
-                                View Full History
+                            <Link to={ROUTES.HISTORY || '#'} className="group flex items-center gap-1 md:gap-2 text-xs md:text-sm font-medium text-zinc-500 hover:text-indigo-600 transition-colors">
+                                <span className="hidden sm:inline">View Full History</span>
+                                <span className="sm:hidden">View All</span>
                                 <span className="p-1 rounded-full bg-zinc-100 group-hover:bg-indigo-100 transition-colors">
-                                    <ArrowRight size={14} />
+                                    <ArrowRight size={12} className="md:w-3.5 md:h-3.5" />
                                 </span>
                             </Link>
                         </div>
@@ -399,12 +404,12 @@ export default function DashboardPage() {
                                     <HistoryRow key={i} analysis={analysis} onDelete={handleDelete} t={t} />
                                 ))
                             ) : (
-                                <div className="py-24 text-center">
-                                    <div className="w-20 h-20 bg-gradient-to-tr from-zinc-50 to-zinc-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-                                        <Sparkles className="w-8 h-8 text-zinc-300" />
+                                <div className="py-16 md:py-24 text-center px-4">
+                                    <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-tr from-zinc-50 to-zinc-100 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 shadow-inner">
+                                        <Sparkles className="w-6 h-6 md:w-8 md:h-8 text-zinc-300" />
                                     </div>
-                                    <p className="text-xl text-zinc-900 font-medium mb-2">No analyses yet</p>
-                                    <p className="text-zinc-400">Start your journey to better skin health today.</p>
+                                    <p className="text-lg md:text-xl text-zinc-900 font-medium mb-2">No analyses yet</p>
+                                    <p className="text-sm md:text-base text-zinc-400">Start your journey to better skin health today.</p>
                                 </div>
                             )}
                         </div>
@@ -430,47 +435,47 @@ function HistoryRow({ analysis, onDelete, t }) {
     };
 
     return (
-        <Link to={`/history/${analysis.id}`} className="group relative flex items-center justify-between p-6 lg:p-8 hover:bg-white transition-colors duration-300">
+        <Link to={`/history/${analysis.id}`} className="group relative flex items-center justify-between p-4 md:p-6 lg:p-8 hover:bg-white transition-colors duration-300">
             {/* Hover Glow Effect */}
             <div className="absolute inset-0 bg-gradient-to-r from-indigo-50/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-            <div className="flex items-center gap-6 relative z-10">
+            <div className="flex items-center gap-4 md:gap-6 relative z-10">
                 {/* Minimalist Icon */}
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border border-zinc-100 bg-zinc-50 group-hover:scale-105 transition-transform duration-300`}>
+                <div className={`w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center border border-zinc-100 bg-zinc-50 group-hover:scale-105 transition-transform duration-300 shrink-0`}>
                     <div className="relative">
-                        <div className={`w-3 h-3 rounded-full ${colors.bg.replace('bg-', 'bg-').replace('100', '500')}`} />
-                        <div className={`absolute inset-0 w-3 h-3 rounded-full ${colors.bg.replace('bg-', 'bg-').replace('100', '500')} animate-ping opacity-20`} />
+                        <div className={`w-2.5 h-2.5 md:w-3 md:h-3 rounded-full ${colors.bg.replace('bg-', 'bg-').replace('100', '500')}`} />
+                        <div className={`absolute inset-0 w-2.5 h-2.5 md:w-3 md:h-3 rounded-full ${colors.bg.replace('bg-', 'bg-').replace('100', '500')} animate-ping opacity-20`} />
                     </div>
                 </div>
                 
                 <div>
-                    <p className="font-medium text-zinc-900 text-lg mb-1">{analysis.skin_condition}</p>
-                    <div className="flex items-center gap-3 text-xs text-zinc-400 font-mono tracking-wide uppercase">
+                    <p className="font-medium text-zinc-900 text-sm md:text-lg mb-0.5 md:mb-1">{analysis.skin_condition}</p>
+                    <div className="flex items-center gap-2 md:gap-3 text-[10px] md:text-xs text-zinc-400 font-mono tracking-wide uppercase">
                         <span>{date}</span>
-                        <span className="w-1 h-1 rounded-full bg-zinc-300" />
+                        <span className="w-0.5 h-0.5 md:w-1 md:h-1 rounded-full bg-zinc-300" />
                         <span>{time}</span>
                     </div>
                 </div>
             </div>
 
-            <div className="flex items-center gap-8 relative z-10">
+            <div className="flex items-center gap-3 md:gap-8 relative z-10">
                 <div className="text-right hidden md:block">
-                    <span className="block text-2xl font-light text-zinc-900">
+                    <span className="block text-xl md:text-2xl font-light text-zinc-900">
                         {(analysis.confidence_score * 100).toFixed(0)}%
                     </span>
-                    <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest">Confidence</span>
+                    <span className="text-[9px] md:text-[10px] font-bold text-zinc-300 uppercase tracking-widest">Confidence</span>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 md:gap-2">
                     <button
                         onClick={handleDelete}
-                        className="p-3 text-zinc-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 duration-300"
+                        className="p-2 md:p-3 text-zinc-300 hover:text-red-500 hover:bg-red-50 rounded-lg md:rounded-xl transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 md:translate-x-4 md:group-hover:translate-x-0 duration-300"
                         title="Delete"
                     >
                         <Trash2 className="w-4 h-4" />
                     </button>
-                    <div className="p-3 text-zinc-300 group-hover:text-indigo-600 transition-colors">
-                        <ChevronRight className="w-5 h-5" />
+                    <div className="p-2 md:p-3 text-zinc-300 group-hover:text-indigo-600 transition-colors">
+                        <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
                     </div>
                 </div>
             </div>
@@ -481,11 +486,11 @@ function HistoryRow({ analysis, onDelete, t }) {
 const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
         return (
-            <div className="bg-white/90 backdrop-blur-md p-4 border border-zinc-200/50 shadow-2xl rounded-2xl">
-                <p className="text-sm font-semibold text-zinc-900 mb-1">{payload[0].payload.name || payload[0].payload.date}</p>
+            <div className="bg-white/90 backdrop-blur-md p-3 md:p-4 border border-zinc-200/50 shadow-2xl rounded-xl md:rounded-2xl">
+                <p className="text-xs md:text-sm font-semibold text-zinc-900 mb-1">{payload[0].payload.name || payload[0].payload.date}</p>
                 <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-indigo-500" />
-                    <p className="text-xs text-zinc-500 font-mono">
+                    <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-indigo-500" />
+                    <p className="text-[10px] md:text-xs text-zinc-500 font-mono">
                         Value: <span className="text-zinc-900 font-bold">{payload[0].value}</span>
                     </p>
                 </div>

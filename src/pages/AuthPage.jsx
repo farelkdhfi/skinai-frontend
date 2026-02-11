@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Mail, Lock, Loader2, ArrowLeft, AlertCircle, CheckCircle,
-    Quote, Sparkles
+    Quote
 } from 'lucide-react';
 
 import { useAuth } from '../context/AuthContext';
@@ -126,7 +126,7 @@ export default function AuthPage() {
     return (
         <div className="min-h-screen bg-white flex overflow-hidden">
 
-            {/* --- LEFT SIDE: Cinematic Visuals --- */}
+            {/* --- LEFT SIDE: Cinematic Visuals (Hidden on Mobile) --- */}
             <div className="hidden lg:block lg:w-[55%] relative bg-zinc-900 overflow-hidden">
                 <AnimatePresence mode="popLayout">
                     <motion.img
@@ -142,18 +142,18 @@ export default function AuthPage() {
                 </AnimatePresence>
                 
                 {/* Overlay Gradient */}
-                <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
 
                 {/* Content Overlay */}
-                <div className="absolute inset-0 flex flex-col justify-between p-16 z-10 text-white">
+                <div className="absolute inset-0 flex flex-col justify-between p-12 lg:p-16 z-10 text-white">
                     <div className="flex items-center">
-                        <span className="font-black text-5xl tracking-tight">SKinAI</span>
+                        <span className="font-black text-4xl lg:text-5xl tracking-tight">SKinAI</span>
                     </div>
 
                     <div className="max-w-xl">
                         <div className="mb-6">
-                            <Quote className="w-10 h-10 text-white/20 mb-4 rotate-180" />
-                            <h2 className="text-3xl font-light leading-tight mb-6">
+                            <Quote className="w-8 h-8 lg:w-10 lg:h-10 text-white/20 mb-4 rotate-180" />
+                            <h2 className="text-2xl lg:text-3xl font-light leading-tight mb-6">
                                 "The precision of SkinAI transformed my dermatology practice. It's not just an app; it's a daily essential for skin health."
                             </h2>
                         </div>
@@ -161,8 +161,8 @@ export default function AuthPage() {
                         <div className="flex items-center gap-4">
                             <div className="h-px w-12 bg-white/30" />
                             <div>
-                                <p className="font-semibold text-white">EL-Kadhafi</p>
-                                <p className="text-white/60 text-sm">Developer</p>
+                                <p className="font-semibold text-white text-sm lg:text-base">EL-Kadhafi</p>
+                                <p className="text-white/60 text-xs lg:text-sm">Developer</p>
                             </div>
                         </div>
                     </div>
@@ -170,28 +170,28 @@ export default function AuthPage() {
             </div>
 
             {/* --- RIGHT SIDE: Elegant Form --- */}
-            <div className="w-full lg:w-[45%] flex flex-col justify-center items-center p-8 md:p-16 relative">
+            <div className="w-full lg:w-[45%] flex flex-col justify-center items-center p-6 sm:p-10 md:p-16 relative">
                 
                 <motion.div 
-                    className="w-full max-w-sm"
+                    className="w-full max-w-[320px] sm:max-w-sm"
                     variants={formContainerVariants}
                     initial="hidden"
                     animate="visible"
                 >
                     {/* Header */}
-                    <motion.div variants={itemVariants} className="mb-10">
+                    <motion.div variants={itemVariants} className="mb-8 md:mb-10">
                          <Link
                             to={ROUTES.HOME}
-                            className="inline-flex items-center text-sm text-zinc-400 hover:text-zinc-900 transition-colors mb-8 group"
+                            className="inline-flex items-center text-sm text-zinc-400 hover:text-zinc-900 transition-colors mb-6 md:mb-8 group"
                         >
                             <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
                             Back to Home
                         </Link>
 
-                        <h1 className="text-4xl font-medium tracking-tight text-zinc-900 mb-3">
+                        <h1 className="text-3xl md:text-4xl font-medium tracking-tight text-zinc-900 mb-2 md:mb-3">
                             {mode === 'login' ? 'Welcome back' : 'Create account'}
                         </h1>
-                        <p className="text-zinc-500 font-light">
+                        <p className="text-sm md:text-base text-zinc-500 font-light">
                             {mode === 'login' 
                                 ? 'Enter your credentials to access your dashboard.' 
                                 : 'Start your journey to better skin health today.'}
@@ -199,7 +199,7 @@ export default function AuthPage() {
                     </motion.div>
 
                     {/* Mode Toggle (Segmented Control) */}
-                    <motion.div variants={itemVariants} className="mb-8 p-1 bg-zinc-100 rounded-xl flex relative">
+                    <motion.div variants={itemVariants} className="mb-6 md:mb-8 p-1 bg-zinc-100 rounded-xl flex relative">
                         {/* Animated Background for Active Tab */}
                         <motion.div
                             layoutId="activeTab"
@@ -214,27 +214,27 @@ export default function AuthPage() {
                         
                         <button
                             onClick={() => toggleMode('login')}
-                            className={`flex-1 relative z-10 py-2.5 text-sm font-medium transition-colors text-center ${mode === 'login' ? 'text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'}`}
+                            className={`flex-1 relative z-10 py-2 md:py-2.5 text-xs md:text-sm font-medium transition-colors text-center ${mode === 'login' ? 'text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'}`}
                         >
                             Log In
                         </button>
                         <button
                             onClick={() => toggleMode('register')}
-                            className={`flex-1 relative z-10 py-2.5 text-sm font-medium transition-colors text-center ${mode === 'register' ? 'text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'}`}
+                            className={`flex-1 relative z-10 py-2 md:py-2.5 text-xs md:text-sm font-medium transition-colors text-center ${mode === 'register' ? 'text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'}`}
                         >
                             Sign Up
                         </button>
                     </motion.div>
 
                     {/* Auth Form */}
-                    <form onSubmit={handleSubmit} className="space-y-5">
+                    <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
                         <AnimatePresence mode="wait">
                             {error && (
                                 <motion.div
                                     initial={{ opacity: 0, height: 0 }}
                                     animate={{ opacity: 1, height: 'auto' }}
                                     exit={{ opacity: 0, height: 0 }}
-                                    className="p-3 rounded-lg bg-red-50 text-red-600 text-sm flex items-center gap-2 border border-red-100"
+                                    className="p-3 rounded-lg bg-red-50 text-red-600 text-xs md:text-sm flex items-center gap-2 border border-red-100"
                                 >
                                     <AlertCircle size={16} className="shrink-0" /> {error}
                                 </motion.div>
@@ -244,7 +244,7 @@ export default function AuthPage() {
                                     initial={{ opacity: 0, height: 0 }}
                                     animate={{ opacity: 1, height: 'auto' }}
                                     exit={{ opacity: 0, height: 0 }}
-                                    className="p-3 rounded-lg bg-emerald-50 text-emerald-600 text-sm flex items-center gap-2 border border-emerald-100"
+                                    className="p-3 rounded-lg bg-emerald-50 text-emerald-600 text-xs md:text-sm flex items-center gap-2 border border-emerald-100"
                                 >
                                     <CheckCircle size={16} className="shrink-0" /> {success}
                                 </motion.div>
@@ -254,17 +254,17 @@ export default function AuthPage() {
                         <motion.div variants={itemVariants} className="space-y-4">
                             {/* Email Input */}
                             <div className="group">
-                                <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5 ml-1">
+                                <label className="block text-[10px] md:text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5 ml-1">
                                     {t('auth_email_label')}
                                 </label>
                                 <div className="relative">
-                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-focus-within:text-indigo-600 transition-colors" />
+                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-zinc-400 group-focus-within:text-indigo-600 transition-colors" />
                                     <input
                                         type="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         placeholder="name@example.com"
-                                        className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-0 outline-none transition-all text-zinc-900 placeholder:text-zinc-400"
+                                        className="w-full pl-10 md:pl-12 pr-4 py-3 md:py-3.5 text-sm md:text-base bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-0 outline-none transition-all text-zinc-900 placeholder:text-zinc-400"
                                         required
                                     />
                                 </div>
@@ -273,21 +273,21 @@ export default function AuthPage() {
                             {/* Password Input */}
                             <div className="group">
                                 <div className="flex justify-between items-center mb-1.5 ml-1">
-                                    <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                                    <label className="text-[10px] md:text-xs font-semibold text-zinc-500 uppercase tracking-wider">
                                         {t('auth_password_label')}
                                     </label>
                                     {mode === 'login' && (
-                                        <a href="#" className="text-xs text-indigo-600 hover:text-indigo-700">Forgot?</a>
+                                        <a href="#" className="text-[10px] md:text-xs text-indigo-600 hover:text-indigo-700">Forgot?</a>
                                     )}
                                 </div>
                                 <div className="relative">
-                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-focus-within:text-indigo-600 transition-colors" />
+                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-zinc-400 group-focus-within:text-indigo-600 transition-colors" />
                                     <input
                                         type="password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         placeholder="••••••••"
-                                        className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-0 outline-none transition-all text-zinc-900 placeholder:text-zinc-400"
+                                        className="w-full pl-10 md:pl-12 pr-4 py-3 md:py-3.5 text-sm md:text-base bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-0 outline-none transition-all text-zinc-900 placeholder:text-zinc-400"
                                         required
                                     />
                                 </div>
@@ -302,17 +302,17 @@ export default function AuthPage() {
                                         exit={{ opacity: 0, height: 0 }}
                                         className="overflow-hidden group"
                                     >
-                                        <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5 ml-1 pt-2">
+                                        <label className="block text-[10px] md:text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5 ml-1 pt-2">
                                             Confirm Password
                                         </label>
                                         <div className="relative">
-                                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-focus-within:text-indigo-600 transition-colors" />
+                                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-zinc-400 group-focus-within:text-indigo-600 transition-colors" />
                                             <input
                                                 type="password"
                                                 value={confirmPassword}
                                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                                 placeholder="••••••••"
-                                                className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-0 outline-none transition-all text-zinc-900 placeholder:text-zinc-400"
+                                                className="w-full pl-10 md:pl-12 pr-4 py-3 md:py-3.5 text-sm md:text-base bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-0 outline-none transition-all text-zinc-900 placeholder:text-zinc-400"
                                                 required
                                             />
                                         </div>
@@ -327,10 +327,10 @@ export default function AuthPage() {
                             whileTap={{ scale: 0.99 }}
                             type="submit"
                             disabled={loading}
-                            className="w-full py-3.5 bg-zinc-900 text-white rounded-xl font-medium shadow-lg shadow-zinc-200 hover:bg-black hover:shadow-xl transition-all flex items-center justify-center gap-2 mt-8 disabled:opacity-70 disabled:cursor-not-allowed"
+                            className="w-full py-3 md:py-3.5 bg-zinc-900 text-white rounded-xl font-medium shadow-lg shadow-zinc-200 hover:bg-black hover:shadow-xl transition-all flex items-center justify-center gap-2 mt-6 md:mt-8 disabled:opacity-70 disabled:cursor-not-allowed text-sm md:text-base"
                         >
                             {loading ? (
-                                <Loader2 className="w-5 h-5 animate-spin" />
+                                <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
                             ) : (
                                 mode === 'login' ? 'Sign In' : 'Create Account'
                             )}
@@ -343,7 +343,7 @@ export default function AuthPage() {
                     variants={itemVariants}
                     initial="hidden"
                     animate="visible"
-                    className="absolute bottom-8 text-xs text-zinc-400"
+                    className="absolute bottom-4 md:bottom-8 text-[10px] md:text-xs text-zinc-400"
                 >
                     &copy; 2025 SkinAI Analysis. All rights reserved.
                 </motion.div>
