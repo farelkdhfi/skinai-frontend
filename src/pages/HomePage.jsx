@@ -9,13 +9,14 @@ import IngredientsSection from '../components/sections/IngredientsSection';
 import DisclaimerSection from '../components/sections/DisclaimerSection';
 import EmpowermentSection from '../components/sections/EmpowermentSection';
 import Footer from '../components/Footer';
+import HeaderLandingPage from '../components/HeaderLandingPage';
 
 const HomePage = () => {
     const containerRef = useRef(null);
 
     return (
         <div ref={containerRef} className="bg-[#F8F8F7] text-[#111] font-sans selection:bg-black selection:text-white">
-            <Header />
+            <HeaderLandingPage />
 
             {/* SECTION 1: HERO */}
             <HeroSection />

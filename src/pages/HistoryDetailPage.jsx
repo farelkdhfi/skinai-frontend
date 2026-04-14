@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Calendar, Info, TrendingUp, AlertCircle, Check, ExternalLink, Trash2, Sparkles } from 'lucide-react';
+import { 
+    ArrowLeft, Calendar, Info, TrendingUp, AlertCircle, 
+    Check, ExternalLink, Trash2, Sparkles, Network, Eye, EyeOff 
+} from 'lucide-react';
 import { historyAPI } from '../services/api';
 import { DIAGNOSIS_COLORS, ROUTES, API_URL } from '../config';
 import Header from '../components/Header';
@@ -30,6 +33,9 @@ export default function HistoryDetailPage() {
     const [analysis, setAnalysis] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+
+    // State untuk toggle heatmap
+    const [showHeatmap, setShowHeatmap] = useState(true);
 
     useEffect(() => {
         const fetchAnalysis = async () => {
@@ -88,21 +94,25 @@ export default function HistoryDetailPage() {
         return `${baseUrl}${path}`;
     };
 
+    // Ambil gambar base dan overlay
+    const baseImageUrl = getImageUrl(analysis.image_url);
+    const overlayImageUrl = getImageUrl(analysis.cfcm_image_url || analysis.heatmap_image_url);
+    const hasOverlay = !!overlayImageUrl;
+
     return (
         <div className="min-h-screen bg-white text-zinc-950 selection:bg-indigo-100 selection:text-indigo-900 pb-24">
             <Header />
 
             <motion.main
-                // Responsive Padding Top & Horizontal
-                className="max-w-5xl mx-auto px-4 md:px-6 pt-24 md:pt-32"
+                className="max-w-5xl mx-auto px-4 md:px-6 pt-28 md:pt-36"
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
             >
                 {/* --- Top Navigation --- */}
-                <motion.div variants={itemVariants} className="flex items-center justify-between mb-8 md:mb-12">
+                <motion.div variants={itemVariants} className="flex items-center justify-between mb-10 md:mb-16">
                     <Link to={ROUTES.DASHBOARD} className="group inline-flex items-center text-zinc-400 hover:text-zinc-900 transition-colors">
-                        <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+                        <ArrowLeft className="w-4 h-4 mr-2.5 group-hover:-translate-x-1.5 transition-transform" />
                         <span className="text-sm font-medium">Back to Dashboard</span>
                     </Link>
 
@@ -127,52 +137,66 @@ export default function HistoryDetailPage() {
                 </motion.div>
 
                 {/* --- Main Grid Layout --- */}
-                {/* Mobile: 1 Column, Desktop: 12 Columns Split */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-16 mb-16 md:mb-24">
 
                     {/* --- Left Column: Result & Stats --- */}
-                    <div className="lg:col-span-4 space-y-8 md:space-y-12">
+                    <div className="lg:col-span-5 space-y-8 md:space-y-10 lg:pt-6">
                         {/* Hero Result */}
                         <motion.div variants={itemVariants}>
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-50 border border-zinc-200 text-xs font-medium text-zinc-500 mb-4 md:mb-6">
+                            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-50 border border-zinc-200 text-xs font-medium text-zinc-500 mb-6 md:mb-8">
                                 <span className={`w-2 h-2 rounded-full ${colors.bg.replace('bg-', 'bg-').replace('100', '500')}`}></span>
-                                Analysis Result
+                                History Record
                             </div>
                             
-                            {/* Responsive Text Size */}
-                            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-medium tracking-tighter text-zinc-900 mb-2 capitalize leading-tight">
+                            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-medium tracking-tighter text-zinc-900 mb-5 md:mb-6 capitalize leading-[0.95] md:leading-[0.9]">
                                 {analysis.skin_condition}
                             </h1>
-                            <p className="text-zinc-400 font-light text-base md:text-lg">
-                                Detected with high precision.
+                            <p className="text-base md:text-lg text-zinc-500 font-light leading-relaxed max-w-xl lg:max-w-none">
+                                Archived analysis report based on your skin's texture, oiliness, and pore profile.
                             </p>
                         </motion.div>
 
                         {/* Stats Grid */}
                         <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-6 border-t border-zinc-100 pt-8">
-                            <div className="flex items-start gap-4">
-                                <div className="p-2 rounded-lg bg-zinc-50 border border-zinc-100 text-zinc-900">
-                                    <TrendingUp className="w-5 h-5" strokeWidth={1.5} />
+                            <div className="flex items-center gap-5 md:gap-7">
+                                <div className="relative w-14 h-14 md:w-18 md:h-18 lg:w-20 lg:h-20 shrink-0">
+                                    <svg className="w-full h-full transform -rotate-90">
+                                        <circle cx="50%" cy="50%" r="45%" stroke="currentColor" strokeWidth="5" fill="transparent" className="text-zinc-100" />
+                                        <circle
+                                            cx="50%" cy="50%" r="45%"
+                                            stroke="currentColor" strokeWidth="5" fill="transparent"
+                                            strokeDasharray={`${analysis.confidence_score * 280} 280`}
+                                            className={`${colors.text.replace('text-', 'text-')}`}
+                                        />
+                                    </svg>
+                                    <div className="absolute inset-0 flex items-center justify-center flex-col">
+                                        <span className="text-sm md:text-base font-bold text-zinc-900">{(analysis.confidence_score * 100).toFixed(0)}%</span>
+                                    </div>
                                 </div>
                                 <div>
-                                    <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Confidence</p>
-                                    <p className="text-2xl font-light text-zinc-900">{(analysis.confidence_score * 100).toFixed(1)}%</p>
+                                    <h3 className="font-medium text-zinc-900 text-sm md:text-base">Confidence Score</h3>
+                                    <div className="text-xs md:text-sm text-zinc-400 font-light flex items-center gap-1.5 mt-1.5">
+                                        <TrendingUp className="w-3.5 h-3.5" />
+                                        <span className="truncate">High Precision</span>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="flex items-start gap-4">
-                                <div className="p-2 rounded-lg bg-zinc-50 border border-zinc-100 text-zinc-900">
-                                    <Calendar className="w-5 h-5" strokeWidth={1.5} />
+
+                            <div className="flex items-center gap-5 md:gap-7 mt-4 lg:mt-6">
+                                <div className="w-14 h-14 md:w-18 md:h-18 lg:w-20 lg:h-20 shrink-0 rounded-full bg-zinc-50 border border-zinc-100 flex items-center justify-center text-zinc-400">
+                                    <Calendar className="w-6 h-6 md:w-8 md:h-8" strokeWidth={1.5} />
                                 </div>
                                 <div>
-                                    <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Date Recorded</p>
-                                    <p className="text-base md:text-lg font-light text-zinc-900">{date}</p>
-                                    <p className="text-sm text-zinc-400">{time}</p>
+                                    <h3 className="font-medium text-zinc-900 text-sm md:text-base">{date}</h3>
+                                    <div className="text-xs md:text-sm text-zinc-400 font-light flex items-center gap-1.5 mt-1.5">
+                                        <span>{time}</span>
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>
 
                         {/* Technical Info */}
-                        <motion.div variants={itemVariants} className="bg-indigo-50/50 rounded-2xl p-5 md:p-6 border border-indigo-100/50">
+                        <motion.div variants={itemVariants} className="bg-indigo-50/50 rounded-2xl p-5 md:p-6 border border-indigo-100/50 mt-6">
                             <div className="flex items-center gap-2 mb-3 text-indigo-900">
                                 <Info className="w-4 h-4" />
                                 <span className="text-sm font-semibold">Methodology</span>
@@ -183,121 +207,144 @@ export default function HistoryDetailPage() {
                         </motion.div>
                     </div>
 
-                    {/* --- Right Column: Visuals & Ingredients --- */}
-                    <div className="lg:col-span-8 space-y-8 md:space-y-12">
-
-                        {/* 1. Focus Patches */}
-                        {analysis.analysis_patches?.length > 0 && (
-                            <motion.div variants={itemVariants}>
-                                <div className="flex items-baseline justify-between mb-4 md:mb-6">
-                                    <h3 className="text-lg md:text-xl font-medium text-zinc-900">Regional Analysis</h3>
-                                    <span className="text-xs md:text-sm text-zinc-400 font-light">AI Focus Areas</span>
-                                </div>
-                                {/* Mobile: 2 Col, Desktop: 4 Col */}
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-                                    {analysis.analysis_patches.map((patch, idx) => (
-                                        <PatchCard
-                                            key={idx}
-                                            item={patch}
-                                            imageUrl={getImageUrl(patch.image_url)}
-                                            heatmapUrl={getImageUrl(patch.heatmap_image_url)}
-                                        />
-                                    ))}
-                                </div>
-                            </motion.div>
-                        )}
-
-                        {/* 2. Full Image & Heatmap */}
-                        <motion.div variants={itemVariants} className="space-y-4 md:space-y-6">
-                            <div className="flex items-baseline justify-between mb-2">
-                                <h3 className="text-lg md:text-xl font-medium text-zinc-900">Full Spectrum Scan</h3>
-                            </div>
-
-                            {analysis.image_url ? (
-                                /* Mobile: Stacked, Desktop: Side-by-side */
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-3 group">
-                                        <div className="aspect-4/3 bg-zinc-50 rounded-2xl overflow-hidden border border-zinc-100 relative">
-                                            <img
-                                                src={getImageUrl(analysis.image_url)}
-                                                alt="Original"
-                                                className="w-full h-full object-contain p-2 transition-transform duration-700 group-hover:scale-105"
-                                            />
-                                        </div>
-                                        <p className="text-xs text-zinc-400 text-center uppercase tracking-widest">Original Source</p>
-                                    </div>
-
-                                    {analysis.heatmap_image_url && (
-                                        <div className="space-y-3 group">
-                                            <div className="aspect-4/3 bg-zinc-50 rounded-2xl overflow-hidden border border-zinc-100 relative">
-                                                <div className="absolute inset-0 bg-zinc-900/5 mix-blend-multiply z-10 pointer-events-none"></div>
-                                                <img
-                                                    src={getImageUrl(analysis.heatmap_image_url)}
-                                                    alt="Heatmap"
-                                                    className="w-full h-full object-contain p-2 transition-transform duration-700 group-hover:scale-105"
-                                                />
-                                            </div>
-                                            <p className="text-xs text-zinc-400 text-center uppercase tracking-widest">Grad-CAM Heatmap</p>
-                                        </div>
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="p-8 md:p-12 border border-dashed border-zinc-200 rounded-2xl text-center text-zinc-400 font-light text-sm md:text-base">
-                                    Source images not available.
-                                </div>
-                            )}
+                    {/* --- Right Column: Visuals --- */}
+                    <div className="lg:col-span-7">
+                        {/* Tombol Toggle Heatmap */}
+                        <motion.div variants={itemVariants} className="flex justify-end mb-6 md:mb-8">
+                            <button
+                                onClick={() => setShowHeatmap(!showHeatmap)}
+                                className="flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 text-[11px] sm:text-xs font-medium rounded-full bg-zinc-900 text-white hover:bg-zinc-800 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                            >
+                                {showHeatmap ? <EyeOff className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+                                {showHeatmap ? 'Hide Heatmaps' : 'Show Heatmaps'}
+                            </button>
                         </motion.div>
 
-                        {/* 3. Recommendations */}
-                        {analysis.recommended_ingredients && (
-                            <motion.div variants={itemVariants} className="pt-8 border-t border-zinc-100">
-                                <h3 className="text-lg md:text-xl font-medium text-zinc-900 mb-6 md:mb-8">Curated Ingredients</h3>
+                        <div className="space-y-12 md:space-y-16">
+                            {/* 1. CFCM: Full Spectrum Scan */}
+                            {(baseImageUrl || overlayImageUrl) ? (
+                                <motion.div variants={itemVariants}>
+                                    <div className="flex items-baseline justify-between mb-6 md:mb-8">
+                                        <h3 className="text-base md:text-lg font-medium text-zinc-900">Composite Condition Map</h3>
+                                        <span className="text-[10px] md:text-xs text-zinc-400 font-light uppercase tracking-wider">Holistic View</span>
+                                    </div>
+                                    <div className="relative bg-zinc-100 rounded-3xl md:rounded-[2.5rem] overflow-hidden border border-zinc-200 shadow-sm aspect-square flex items-center justify-center">
+                                        {/* Base Layer */}
+                                        {baseImageUrl && (
+                                            <img
+                                                src={baseImageUrl}
+                                                alt="Original Map Capture"
+                                                className="w-full h-full object-cover absolute inset-0"
+                                            />
+                                        )}
+                                        
+                                        {/* Overlay Layer */}
+                                        {hasOverlay && (
+                                            <>
+                                                <img
+                                                    src={overlayImageUrl}
+                                                    alt="Composite Facial Condition Map"
+                                                    className={`w-full h-full object-cover relative z-10 transition-opacity duration-500 ${showHeatmap ? 'opacity-100' : 'opacity-0'}`}
+                                                />
+                                                <div className={`absolute bottom-5 right-5 px-4 py-2 bg-black/50 backdrop-blur text-white text-[10px] md:text-xs font-medium rounded-full border border-white/10 shadow-lg z-20 transition-opacity duration-500 ${showHeatmap ? 'opacity-100' : 'opacity-0'}`}>
+                                                    Grad-CAM Overlay
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            ) : (
+                                <motion.div variants={itemVariants} className="p-8 md:p-12 border border-dashed border-zinc-200 rounded-[2.5rem] text-center text-zinc-400 font-light text-sm md:text-base">
+                                    Composite image not available in history.
+                                </motion.div>
+                            )}
 
-                                <div className="space-y-8">
-                                    {/* Primary */}
-                                    {analysis.recommended_ingredients.primary_ingredients && (
-                                        <div className="space-y-4">
-                                            <div className="flex items-center gap-3">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                                <h4 className="text-sm font-semibold uppercase tracking-widest text-zinc-500">Highly Recommended</h4>
-                                            </div>
-                                            {/* Mobile: 1 Col, Desktop: 2 Col */}
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                {analysis.recommended_ingredients.primary_ingredients.map((ing, i) => (
-                                                    <IngredientCard key={i} ingredient={ing} type="primary" />
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Alternatives */}
-                                    {analysis.recommended_ingredients.alternative_ingredients?.length > 0 && (
-                                        <div className="space-y-4">
-                                            <div className="flex items-center gap-3">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-zinc-300"></span>
-                                                <h4 className="text-sm font-semibold uppercase tracking-widest text-zinc-500">Alternatives</h4>
-                                            </div>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                {analysis.recommended_ingredients.alternative_ingredients.map((ing, i) => (
-                                                    <IngredientCard key={i} ingredient={ing} type="secondary" />
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Fallback for simple array format */}
-                                    {Array.isArray(analysis.recommended_ingredients) && (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            {analysis.recommended_ingredients.map((ing, i) => (
-                                                <IngredientCard key={i} ingredient={ing} type="primary" />
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            </motion.div>
-                        )}
+                            {/* 2. Focus Patches (Regional Analysis) */}
+                            {analysis.analysis_patches?.length > 0 && (
+                                <motion.div variants={itemVariants}>
+                                    <div className="flex items-baseline justify-between mb-6 md:mb-8">
+                                        <h3 className="text-base md:text-lg font-medium text-zinc-900">Regional Analysis</h3>
+                                        <span className="text-[10px] md:text-xs text-zinc-400 font-light uppercase tracking-wider">Micro-texture Features</span>
+                                    </div>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                                        {analysis.analysis_patches.map((patch, idx) => (
+                                            <PatchCard
+                                                key={idx}
+                                                item={patch}
+                                                imageUrl={getImageUrl(patch.image_url)}
+                                                heatmapUrl={getImageUrl(patch.heatmap_image_url)}
+                                                showHeatmap={showHeatmap}
+                                            />
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            )}
+                        </div>
                     </div>
                 </div>
+
+                {/* --- Recommendations Section --- */}
+                {analysis.recommended_ingredients && (
+                    <motion.section variants={itemVariants} className="border-t border-zinc-100 pt-12 md:pt-20">
+                        <div className="flex items-center gap-4 mb-10 md:mb-14">
+                            <span className="w-2 h-9 bg-indigo-600 rounded-full"></span>
+                            <div>
+                                <div className="flex items-center gap-2.5">
+                                    <h2 className="text-xl md:text-2xl font-medium text-zinc-900">Condition-Anchored Regimen</h2>
+                                    <span className="hidden md:flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[10px] font-bold uppercase tracking-wider">
+                                        <Network className="w-3.5 h-3.5" /> Semantic Clustering
+                                    </span>
+                                </div>
+                                <p className="text-sm md:text-base text-zinc-400 font-light mt-2 max-w-2xl">
+                                    Algorithmically clustered ingredients matching your {analysis.skin_condition} skin profile.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16">
+                            {/* Primary */}
+                            {analysis.recommended_ingredients.primary_ingredients && (
+                                <div className="space-y-6 md:space-y-8">
+                                    <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2.5">
+                                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                        Primary Match (Anchor Cluster)
+                                    </h3>
+                                    <div className="space-y-4">
+                                        {analysis.recommended_ingredients.primary_ingredients.map((ing, i) => (
+                                            <IngredientCard key={i} ingredient={ing} type="primary" />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Alternatives */}
+                            {analysis.recommended_ingredients.alternative_ingredients?.length > 0 && (
+                                <div className="space-y-6 md:space-y-8">
+                                    <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2.5">
+                                        <span className="w-2.5 h-2.5 rounded-full bg-zinc-300"></span>
+                                        Alternative Options (Supporting Clusters)
+                                    </h3>
+                                    <div className="space-y-4">
+                                        {analysis.recommended_ingredients.alternative_ingredients.map((ing, i) => (
+                                            <IngredientCard key={i} ingredient={ing} type="secondary" />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Fallback for simple array format from older database records */}
+                            {Array.isArray(analysis.recommended_ingredients) && (
+                                <div className="space-y-6 md:space-y-8 col-span-full">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                                        {analysis.recommended_ingredients.map((ing, i) => (
+                                            <IngredientCard key={i} ingredient={ing} type="primary" />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </motion.section>
+                )}
             </motion.main>
         </div>
     );
@@ -305,38 +352,43 @@ export default function HistoryDetailPage() {
 
 // --- Sub-components with Elegant Design ---
 
-function PatchCard({ item, imageUrl, heatmapUrl }) {
+function PatchCard({ item, imageUrl, heatmapUrl, showHeatmap }) {
     const colors = DIAGNOSIS_COLORS[item.predicted_class] || DIAGNOSIS_COLORS.Normal;
 
     return (
-        <div className="group relative">
-            <div className="aspect-square bg-zinc-50 rounded-xl md:rounded-2xl overflow-hidden border border-zinc-100 relative mb-2 md:mb-3">
+        <div className="group relative bg-zinc-50 rounded-2xl md:rounded-3xl overflow-hidden border border-zinc-100 hover:border-zinc-300 transition-all duration-300">
+            <div className="aspect-square relative bg-zinc-200">
+                {/* Base Image */}
                 {imageUrl ? (
-                    <img src={imageUrl} alt={item.region} className="w-full h-full object-cover" />
+                    <img src={imageUrl} alt={item.region} className="w-full h-full object-cover absolute inset-0" />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center text-zinc-300 text-xs">No Image</div>
+                    <div className="w-full h-full flex items-center justify-center text-zinc-300 text-xs bg-zinc-100 absolute inset-0">No Image</div>
                 )}
 
-                {/* Heatmap Overlay on Hover */}
+                {/* Heatmap Overlay Toggleable */}
                 {heatmapUrl && (
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white">
+                    <div className={`absolute inset-0 transition-opacity duration-500 z-10 ${showHeatmap ? 'opacity-100' : 'opacity-0'}`}>
                         <img src={heatmapUrl} alt="Heatmap" className="w-full h-full object-cover" />
-                        <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/50 to-transparent text-center">
-                            <span className="text-[10px] text-white font-medium tracking-wide">HEATMAP</span>
-                        </div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                     </div>
                 )}
+
+                {/* Floating Badge */}
+                <div className="absolute top-2.5 left-2.5 md:top-3.5 md:left-3.5 z-20">
+                    <span className={`text-[9px] md:text-[10px] font-bold px-2 py-1 md:px-2.5 md:py-1.5 rounded-full bg-white/90 backdrop-blur shadow-sm ${colors.text}`}>
+                        {item.predicted_class}
+                    </span>
+                </div>
             </div>
 
-            <div className="flex justify-between items-start px-1">
-                <div className="overflow-hidden">
-                    <p className="text-[9px] md:text-[10px] font-bold uppercase text-zinc-400 tracking-wider mb-0.5 truncate">{item.region}</p>
-                    <p className={`text-[10px] md:text-xs font-semibold truncate ${colors.text.replace('text-', 'text-').replace('700', '900')}`}>
-                        {item.predicted_class}
-                    </p>
-                </div>
-                <div className="text-[9px] md:text-[10px] font-mono text-zinc-400 bg-zinc-50 px-1.5 py-0.5 rounded border border-zinc-100">
-                    {(item.confidence * 100).toFixed(0)}%
+            <div className="p-3 md:p-4 bg-white relative z-10">
+                <div className="flex justify-between items-center">
+                    <span className="text-[10px] md:text-xs font-bold uppercase text-zinc-400 tracking-wider truncate pr-2">
+                        {item.region}
+                    </span>
+                    <span className="font-mono text-[10px] md:text-xs font-bold text-zinc-900 shrink-0">
+                        {(item.confidence * 100).toFixed(0)}%
+                    </span>
                 </div>
             </div>
         </div>

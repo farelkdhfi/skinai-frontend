@@ -27,10 +27,15 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response?.status === 401) {
+        // Cek apakah request yang error berasal dari endpoint login
+        const isLoginRequest = error.config && error.config.url && error.config.url.includes('/auth/login');
+
+        // Jika error 401 DAN BUKAN dari proses login, baru redirect (karena token expired)
+        if (error.response?.status === 401 && !isLoginRequest) {
             localStorage.removeItem('access_token');
             window.location.href = '/login';
         }
+        
         return Promise.reject(error);
     }
 );
@@ -64,8 +69,8 @@ export const authAPI = {
 // =============================================================================
 
 export const analyzeAPI = {
-    analyze: (images) =>
-        api.post('/analyze', { images }),
+    analyze: (payload) =>
+        api.post('/analyze', payload),
 
     analyzeWithoutGradCAM: (images) =>
         api.post('/analyze/predict-only', { images }),

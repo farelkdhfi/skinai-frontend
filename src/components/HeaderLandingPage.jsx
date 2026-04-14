@@ -2,21 +2,22 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion'; 
 import {
-    Camera, LayoutDashboard, User, Menu, X, LogOut, ChevronRight
+    Menu, X, LogOut, ChevronRight, User,
+    Home, Info, FileText, Mail 
 } from 'lucide-react';
 
 import { ROUTES } from '../config.js';
 import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
 
-const Header = () => {
+const HeaderLandingPage = () => {
     const location = useLocation();
     const { isAuthenticated, logout } = useAuth();
-    const { t } = useLanguage();
 
     const [isScrolled, setIsScrolled] = useState(false);
     const [isVisible, setIsVisible] = useState(true); 
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    // NEW: State untuk modal konfirmasi logout
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
     // Detect scroll direction and styling
     useEffect(() => {
@@ -49,26 +50,27 @@ const Header = () => {
         setIsMobileMenuOpen(false);
     }, [location]);
 
-    // Prevent body scroll when mobile menu is open
+    // Prevent body scroll when mobile menu or logout modal is open
     useEffect(() => {
-        if (isMobileMenuOpen) {
+        if (isMobileMenuOpen || showLogoutConfirm) {
             document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = 'unset';
         }
-    }, [isMobileMenuOpen]);
+    }, [isMobileMenuOpen, showLogoutConfirm]);
 
+    // Menu Item full English, tanpa translation function
     const navItems = [
-        { path: ROUTES.ANALYZE, label: t('nav_analyze'), icon: Camera },
-        { path: ROUTES.DASHBOARD, label: t('nav_dashboard'), icon: LayoutDashboard },
+        { path: ROUTES.HOME, label: 'Home', icon: Home },
+        { path: ROUTES.ABOUT, label: 'About', icon: Info },
+        { path: ROUTES.PAPER, label: 'Paper', icon: FileText },
+        { path: ROUTES.CONTACT, label: 'Contact', icon: Mail },
     ];
 
     return (
         <>
             <motion.header
                 initial={{ y: -100 }}
-                // Animate berdasarkan isVisible. 
-                // Jika Mobile Menu buka, header dipaksa tetap muncul (y: 0)
                 animate={{ y: (isVisible || isMobileMenuOpen) ? 0 : '-100%' }}
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }} 
                 className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${isScrolled || isMobileMenuOpen
@@ -79,12 +81,12 @@ const Header = () => {
                 <div className="max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between">
 
                     {/* --- LOGO (Cinematic Style) --- */}
-                    <div className="relative z-50 flex items-center gap-2 group">
+                    <Link to={ROUTES.HOME} className="relative z-50 flex items-center gap-2 group">
                         <div className="flex items-center text-xl md:text-2xl tracking-tighter">
                             <span className="font-semibold text-zinc-900">SKin</span>
                             <span className="font-serif italic text-zinc-500 group-hover:text-indigo-600 transition-colors duration-500">AI</span>
                         </div>
-                    </div>
+                    </Link>
 
                     {/* --- DESKTOP NAV --- */}
                     <div className="hidden md:flex items-center gap-8">
@@ -107,15 +109,15 @@ const Header = () => {
                             })}
                         </nav>
 
-                        {/* Actions */}
+                        {/* Actions (LOGIN / LOGOUT) */}
                         <div className="flex items-center gap-4">
                             {isAuthenticated ? (
                                 <button
-                                    onClick={logout}
+                                    onClick={() => setShowLogoutConfirm(true)} // CHANGED: Trigger Modal
                                     className="group px-5 py-2.5 rounded-full bg-zinc-50 border border-zinc-200 text-zinc-600 text-sm font-medium hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition-all flex items-center gap-2"
                                 >
                                     <LogOut size={16} />
-                                    <span>{t('nav_logout')}</span>
+                                    <span>Logout</span>
                                 </button>
                             ) : (
                                 <Link to={ROUTES.LOGIN}>
@@ -125,7 +127,7 @@ const Header = () => {
                                         className="px-6 py-2.5 rounded-full bg-[#111] text-white text-sm font-medium hover:bg-black transition-all shadow-lg shadow-zinc-900/20 flex items-center gap-2"
                                     >
                                         <User size={16} />
-                                        <span>{t('nav_login')}</span>
+                                        <span>Login</span>
                                     </motion.button>
                                 </Link>
                             )}
@@ -203,13 +205,13 @@ const Header = () => {
                             {isAuthenticated ? (
                                 <button
                                     onClick={() => {
-                                        logout();
-                                        setIsMobileMenuOpen(false);
+                                        setShowLogoutConfirm(true); // CHANGED: Trigger Modal
+                                        setIsMobileMenuOpen(false); // Close menu
                                     }}
                                     className="w-full py-3.5 rounded-xl bg-red-50 text-red-600 font-semibold flex items-center justify-center gap-2 border border-red-100 active:scale-[0.98] transition-transform"
                                 >
                                     <LogOut size={20} />
-                                    {t('nav_logout')}
+                                    Logout
                                 </button>
                             ) : (
                                 <Link
@@ -218,9 +220,51 @@ const Header = () => {
                                     className="w-full py-3.5 rounded-xl bg-[#111] text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-zinc-900/10 active:scale-[0.98] transition-transform"
                                 >
                                     <User size={20} />
-                                    {t('nav_login')}
+                                    Login
                                 </Link>
                             )}
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* --- LOGOUT CONFIRMATION MODAL --- */}
+            <AnimatePresence>
+                {showLogoutConfirm && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/40 backdrop-blur-sm"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                            className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl"
+                        >
+                            <h3 className="text-xl font-semibold text-zinc-900 mb-2">Confirm Logout</h3>
+                            <p className="text-zinc-600 mb-6 text-sm">
+                                Are you sure you want to log out of your account?
+                            </p>
+                            <div className="flex gap-3 justify-end">
+                                <button
+                                    onClick={() => setShowLogoutConfirm(false)}
+                                    className="px-4 py-2 rounded-xl text-sm font-medium text-zinc-700 bg-zinc-100 hover:bg-zinc-200 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setShowLogoutConfirm(false);
+                                        logout();
+                                    }}
+                                    className="px-4 py-2 rounded-xl text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors flex items-center gap-2"
+                                >
+                                    <LogOut size={16} />
+                                    Logout
+                                </button>
+                            </div>
                         </motion.div>
                     </motion.div>
                 )}
@@ -228,4 +272,4 @@ const Header = () => {
         </>
     );
 }
-export default Header;
+export default HeaderLandingPage;

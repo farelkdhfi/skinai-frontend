@@ -23,17 +23,13 @@ const ScanOverlay = ({ isActive }) => {
 
     return (
         <div className="absolute inset-0 z-20 pointer-events-none p-6 md:p-10 flex items-center justify-center">
-            {/* Outer Frame with Blur */}
             <div className="absolute inset-0 border-[0.5px] border-white/10 m-4 md:m-6 rounded-[2rem] md:rounded-[3rem] pointer-events-none" />
-
-            {/* Animated Corners */}
             <div className="relative w-full h-full max-w-[85%] max-h-[85%] md:max-w-[80%] md:max-h-[80%]">
                 <div className="absolute top-0 left-0 w-6 h-6 md:w-8 md:h-8 border-l-2 border-t-2 border-white rounded-tl-lg" />
                 <div className="absolute top-0 right-0 w-6 h-6 md:w-8 md:h-8 border-r-2 border-t-2 border-white rounded-tr-lg" />
                 <div className="absolute bottom-0 left-0 w-6 h-6 md:w-8 md:h-8 border-l-2 border-b-2 border-white rounded-bl-lg" />
                 <div className="absolute bottom-0 right-0 w-6 h-6 md:w-8 md:h-8 border-r-2 border-b-2 border-white rounded-br-lg" />
 
-                {/* Scanning Laser */}
                 <motion.div
                     initial={{ top: "0%", opacity: 0 }}
                     animate={{ top: "100%", opacity: [0, 1, 0] }}
@@ -45,7 +41,6 @@ const ScanOverlay = ({ isActive }) => {
                     className="absolute left-0 right-0 h-[1px] bg-white shadow-[0_0_20px_rgba(255,255,255,0.8)]"
                 />
 
-                {/* Central Crosshair */}
                 <div className="absolute inset-0 flex items-center justify-center opacity-40">
                     <div className="w-4 h-4 border border-white/50 rounded-full flex items-center justify-center">
                         <div className="w-0.5 h-0.5 bg-white rounded-full" />
@@ -53,7 +48,6 @@ const ScanOverlay = ({ isActive }) => {
                 </div>
             </div>
 
-            {/* Status Text */}
             <div className="absolute bottom-6 md:bottom-10 left-0 right-0 text-center">
                 <motion.div
                     initial={{ opacity: 0.5 }}
@@ -99,12 +93,49 @@ const StatusGrid = ({ validations }) => {
                     <span className={`text-xs md:text-sm font-mono font-medium ${item.valid ? 'text-zinc-200' : 'text-zinc-300'}`}>
                         {item.valid ? 'OK' : item.value || '--'}
                     </span>
-
-                    {/* Tiny Status Dot */}
                     <div className={`absolute top-2 right-2 w-1 h-1 rounded-full ${item.valid ? 'bg-white' : 'bg-zinc-200'}`} />
                 </div>
             ))}
         </div>
+    );
+};
+
+// 3. NEW: Elegant Real-time Guidance Overlay
+const GuidanceOverlay = ({ validations, mode, isAnalyzing, capturedFrame }) => {
+    // Hanya tampil di mode kamera dan jika belum memproses gambar
+    if (mode !== 'camera' || isAnalyzing || capturedFrame) return null;
+
+    // Menentukan prioritas instruksi
+    let guidance = null;
+
+    if (!validations.faceDetected) {
+        guidance = { text: "ALIGN FACE IN FRAME", icon: Maximize, color: "text-amber-400" };
+    } else if (!validations.brightness.valid) {
+        guidance = { text: "IMPROVE LIGHTING", icon: Sun, color: "text-amber-400" };
+    } else if (!validations.roi.valid) {
+        guidance = { text: "MOVE CLOSER", icon: Move, color: "text-amber-400" };
+    } else if (!validations.orientation.valid) {
+        guidance = { text: "LOOK STRAIGHT AHEAD", icon: AlertCircle, color: "text-amber-400" };
+    }
+
+    return (
+        <AnimatePresence>
+            {guidance && (
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute top-6 left-0 right-0 z-30 flex justify-center pointer-events-none"
+                >
+                    <div className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-zinc-900/80 backdrop-blur-md border border-white/10 shadow-2xl">
+                        <guidance.icon className={`w-3.5 h-3.5 md:w-4 md:h-4 animate-pulse ${guidance.color}`} />
+                        <span className="text-[10px] md:text-xs font-bold tracking-[0.15em] text-white uppercase">
+                            {guidance.text}
+                        </span>
+                    </div>
+                </motion.div>
+            )}
+        </AnimatePresence>
     );
 };
 
@@ -122,6 +153,7 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
 
     // -- State --
     const [mode, setMode] = useState(initialMode);
+    const [analysisType, setAnalysisType] = useState('full');
     const [selectedImage, setSelectedImage] = useState(null);
     const [capturedFrame, setCapturedFrame] = useState(null);
     const [validations, setValidations] = useState({
@@ -135,6 +167,7 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
     const [uploadFaceDetected, setUploadFaceDetected] = useState(false);
     const [currentLandmarks, setCurrentLandmarks] = useState(null);
     const [modelLoaded, setModelLoaded] = useState(false);
+    const [countdown, setCountdown] = useState(null);
 
     const handleBack = useCallback(() => {
         if (requestRef.current) {
@@ -229,7 +262,7 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
             setIsReady(brightnessValid && roiValid && orientationValid);
         }
 
-        if (canvasRef.current && mode !== 'upload') {
+        if (canvasRef.current && mode !== 'upload' && analysisType === 'full') {
             const overlayCtx = canvasRef.current.getContext('2d');
             canvasRef.current.width = inputWidth;
             canvasRef.current.height = inputHeight;
@@ -250,8 +283,11 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                     }
                 }
             }
+        } else if (canvasRef.current) {
+            const overlayCtx = canvasRef.current.getContext('2d');
+            overlayCtx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
         }
-    }, [calculateBrightness, calculateROI, calculateOrientation, mode]);
+    }, [calculateBrightness, calculateROI, calculateOrientation, mode, analysisType]);
 
     useEffect(() => {
         const initLandmarker = async () => {
@@ -279,7 +315,7 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
             try { faceLandmarkerRef.current.setOptions({ runningMode: mode === 'camera' ? "VIDEO" : "IMAGE" }); }
             catch (e) { console.log(e); }
         }
-        reset(); setSelectedImage(null); setIsReady(false); setUploadFaceDetected(false);
+        reset(); setSelectedImage(null); setIsReady(false); setUploadFaceDetected(false); setCountdown(null);
         if (canvasRef.current) canvasRef.current.getContext('2d').clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
     }, [mode, reset]);
 
@@ -323,7 +359,9 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
         }
     };
 
-    const handleCapture = async () => {
+    const handleCapture = useCallback(async () => {
+        setCountdown(null);
+
         const source = mode === 'camera' ? webcamRef.current?.video : imgRef.current;
         if (!source) return;
 
@@ -351,45 +389,81 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
 
         try {
             let patches = {};
+            let bboxes = {};
             const landmarks = currentLandmarks;
-            if (!landmarks || landmarks.length < 468) throw new Error("No face");
 
-            Object.keys(ROI_POINTS).forEach((region) => {
-                const { indices } = ROI_POINTS[region];
-                const points = indices.map(idx => ({
-                    x: landmarks[idx].x * width,
-                    y: landmarks[idx].y * height
-                }));
+            if (analysisType === 'full') {
+                if (!landmarks || landmarks.length < 468) throw new Error("No face");
 
-                const minX = Math.min(...points.map(p => p.x));
-                const maxX = Math.max(...points.map(p => p.x));
-                const minY = Math.min(...points.map(p => p.y));
-                const maxY = Math.max(...points.map(p => p.y));
+                Object.keys(ROI_POINTS).forEach((region) => {
+                    const { indices } = ROI_POINTS[region];
+                    const points = indices.map(idx => {
+                        let normalizedX = landmarks[idx].x;
 
-                const roiW = maxX - minX;
-                const roiH = maxY - minY;
-                const padding = 15;
-                const sideLength = Math.max(roiW, roiH) + (padding * 2);
-                const centerX = minX + roiW / 2;
-                const centerY = minY + roiH / 2;
-                const startX = centerX - (sideLength / 2);
-                const startY = centerY - (sideLength / 2);
+                        if (mode === 'camera') {
+                            normalizedX = 1 - normalizedX;
+                        }
 
+                        return {
+                            x: normalizedX * width,
+                            y: landmarks[idx].y * height
+                        };
+                    });
+
+                    const minX = Math.min(...points.map(p => p.x));
+                    const maxX = Math.max(...points.map(p => p.x));
+                    const minY = Math.min(...points.map(p => p.y));
+                    const maxY = Math.max(...points.map(p => p.y));
+
+                    const roiW = maxX - minX;
+                    const roiH = maxY - minY;
+                    const padding = 15;
+                    const sideLength = Math.max(roiW, roiH) + (padding * 2);
+                    const centerX = minX + roiW / 2;
+                    const centerY = minY + roiH / 2;
+                    const startX = centerX - (sideLength / 2);
+                    const startY = centerY - (sideLength / 2);
+
+                    bboxes[region] = {
+                        x: Math.round(startX),
+                        y: Math.round(startY),
+                        w: Math.round(sideLength),
+                        h: Math.round(sideLength)
+                    };
+
+                    const patchCanvas = document.createElement('canvas');
+                    patchCanvas.width = CROP_SIZE;
+                    patchCanvas.height = CROP_SIZE;
+                    const pCtx = patchCanvas.getContext('2d');
+
+                    pCtx.drawImage(
+                        canvas,
+                        startX, startY, sideLength, sideLength,
+                        0, 0, CROP_SIZE, CROP_SIZE
+                    );
+
+                    patches[region] = patchCanvas.toDataURL('image/jpeg', 0.95);
+                });
+            } else {
                 const patchCanvas = document.createElement('canvas');
                 patchCanvas.width = CROP_SIZE;
                 patchCanvas.height = CROP_SIZE;
                 const pCtx = patchCanvas.getContext('2d');
 
+                const minDim = Math.min(width, height);
+                const startX = (width - minDim) / 2;
+                const startY = (height - minDim) / 2;
+
                 pCtx.drawImage(
                     canvas,
-                    startX, startY, sideLength, sideLength,
+                    startX, startY, minDim, minDim,
                     0, 0, CROP_SIZE, CROP_SIZE
                 );
 
-                patches[region] = patchCanvas.toDataURL('image/jpeg', 0.95);
-            });
+                patches['single_patch'] = patchCanvas.toDataURL('image/jpeg', 0.95);
+            }
 
-            await analyze(patches, canvas.toDataURL('image/jpeg'));
+            await analyze(patches, canvas.toDataURL('image/jpeg', 0.95), bboxes);
             navigate(ROUTES.RESULTS);
         } catch (err) {
             console.error('Analysis error:', err);
@@ -397,25 +471,44 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
             setCapturedFrame(null);
             if (mode === 'camera') requestRef.current = requestAnimationFrame(predictWebcam);
         }
-    };
+    }, [mode, currentLandmarks, analysisType, analyze, navigate, predictWebcam]);
 
     const allValid = validations.faceDetected && validations.brightness.valid && validations.roi.valid && validations.orientation.valid;
-    const canCapture = modelLoaded && !isAnalyzing && ((mode === 'camera' && allValid) || (mode === 'upload' && selectedImage));
+
+    const canCapture = modelLoaded && !isAnalyzing && (
+        (mode === 'camera' && allValid) ||
+        (mode === 'upload' && selectedImage && (analysisType === 'patch' || uploadFaceDetected))
+    );
+
+    const captureRef = useRef(handleCapture);
+    useEffect(() => { captureRef.current = handleCapture; }, [handleCapture]);
+
+    useEffect(() => {
+        let timer;
+        if (mode === 'camera' && canCapture && !isAnalyzing && !capturedFrame) {
+            if (countdown === null) {
+                setCountdown(3);
+            } else if (countdown > 0) {
+                timer = setTimeout(() => setCountdown(prev => prev - 1), 1000);
+            } else if (countdown === 0) {
+                captureRef.current();
+            }
+        } else {
+            setCountdown(null);
+        }
+        return () => clearTimeout(timer);
+    }, [mode, canCapture, countdown, isAnalyzing, capturedFrame]);
 
     // --- RENDER UI ---
     return (
         <div className="flex flex-col lg:flex-row h-[100dvh] lg:h-screen w-full bg-zinc-50 overflow-hidden font-sans text-zinc-900 selection:bg-zinc-900 selection:text-white">
 
             {/* --- LEFT: IMMERSIVE VIEWFINDER --- */}
-            {/* Mobile: Top half (45vh), Desktop: Left half (full height) */}
             <div className="relative w-full lg:w-6/12 h-[45vh] lg:h-full bg-black flex items-center justify-center p-0 lg:p-4 overflow-hidden shadow-2xl z-10">
-                {/* Background Ambient Glow */}
                 <div className="absolute top-[-20%] left-[-20%] w-[140%] h-[140%] bg-zinc-900/50 blur-3xl pointer-events-none" />
 
-                {/* Camera Housing */}
-                {/* Mobile: Full Width/Height square-ish. Desktop: Rounded floating container */}
-                <div className="relative w-full h-full lg:aspect-square lg:h-auto lg:max-h-[90vh] lg:w-auto lg:rounded-[2rem] overflow-hidden bg-zinc-950 ring-0 lg:ring-1 lg:ring-white/10">
-                    <div className="w-full h-full relative group">
+                <div className="relative w-full aspect-square max-w-[min(100vw,45vh)] lg:max-w-[75vh] lg:rounded-[2rem] overflow-hidden bg-zinc-950 ring-0 lg:ring-1 lg:ring-white/10 mx-auto shadow-2xl flex-shrink-0">
+                    <div className="absolute inset-0 w-full h-full group">
 
                         {/* Feed */}
                         {mode === 'camera' ? (
@@ -434,23 +527,32 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                                 />
                             )
                         ) : selectedImage ? (
-                            <img ref={imgRef} src={selectedImage} alt="Selected" className={`w-full h-full object-cover bg-zinc-900 ${mode === 'camera' ? 'scale-x-[-1]' : ''}`} />
+                            <img ref={imgRef} src={selectedImage} alt="Selected" className="w-full h-full object-cover bg-zinc-900" />
                         ) : (
-                            <div className="w-full h-full flex flex-col items-center justify-center text-zinc-700 gap-6 bg-zinc-900">
-                                <div className="p-6 rounded-full bg-zinc-800/50 border border-zinc-700/50 border-dashed">
-                                    <ImageIcon className="w-10 h-10 opacity-50" />
+                            <div className="w-full h-full flex flex-col items-center justify-center gap-4 md:gap-6 bg-zinc-900">
+                                <div className="p-6 md:p-8 rounded-full bg-zinc-800/80 border border-zinc-700/80 border-dashed shadow-inner">
+                                    <ImageIcon className="w-8 h-8 md:w-10 md:h-10 text-zinc-500 opacity-80" />
                                 </div>
-                                <p className="text-xs font-medium tracking-widest uppercase opacity-60">No Image Source</p>
+                                <p className="text-[10px] md:text-xs font-semibold tracking-widest uppercase text-zinc-500 opacity-80 whitespace-nowrap">
+                                    No Image Source
+                                </p>
                             </div>
                         )}
 
                         {/* Overlays */}
-                        <canvas ref={canvasRef} className={`absolute inset-0 w-full h-full pointer-events-none object-cover ${mode === 'camera' ? 'scale-x-[-1]' : ''}`} />
+                        <canvas ref={canvasRef} className={`absolute inset-0 w-full h-full pointer-events-none object-cover z-10 ${mode === 'camera' ? 'scale-x-[-1]' : ''}`} />
 
-                        {/* Scanner UI */}
-                        {mode === 'camera' && !isAnalyzing && !capturedFrame && modelLoaded && (
+                        {mode === 'camera' && !isAnalyzing && !capturedFrame && modelLoaded && analysisType === 'full' && (
                             <ScanOverlay isActive={true} />
                         )}
+
+                        {/* TAMPILKAN GUIDANCE OVERLAY DI SINI */}
+                        <GuidanceOverlay 
+                            validations={validations} 
+                            mode={mode} 
+                            isAnalyzing={isAnalyzing} 
+                            capturedFrame={capturedFrame} 
+                        />
 
                         {/* Loading States */}
                         {(!modelLoaded || isAnalyzing) && (
@@ -466,7 +568,6 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
             </div>
 
             {/* --- RIGHT: CONTROL CENTER --- */}
-            {/* Mobile: Bottom half (Flex-1), Desktop: Right half (full height) */}
             <div className="relative w-full lg:w-6/12 flex-1 lg:h-full bg-white flex flex-col z-20 rounded-t-[2rem] lg:rounded-none -mt-6 lg:mt-0 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] lg:shadow-none overflow-hidden">
 
                 {/* Top Nav */}
@@ -478,19 +579,50 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                         <span className="text-xs font-bold tracking-widest uppercase hidden md:block">Exit</span>
                     </button>
 
-                    <div className="flex gap-1 md:gap-2 p-1 bg-zinc-100 rounded-full">
-                        {['camera', 'upload'].map((m) => (
-                            <button
-                                key={m}
-                                onClick={() => setMode(m)}
-                                className={`
-                                    px-4 py-1.5 md:px-6 md:py-2 rounded-full text-[10px] md:text-xs font-bold tracking-widest uppercase transition-all duration-300
-                                    ${mode === m ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-400 hover:text-zinc-600'}
-                                `}
-                            >
-                                {m}
-                            </button>
-                        ))}
+                    <div className="flex gap-2">
+                        <AnimatePresence>
+                            {mode === 'upload' && (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.95, width: 0 }}
+                                    className="flex gap-1 md:gap-2 p-1 bg-zinc-100 rounded-full overflow-hidden"
+                                >
+                                    {['full', 'patch'].map((t) => (
+                                        <button
+                                            key={t}
+                                            onClick={() => setAnalysisType(t)}
+                                            className={`
+                                                px-4 py-1.5 md:px-4 md:py-2 rounded-full text-[10px] md:text-xs font-bold tracking-widest uppercase transition-all duration-300
+                                                ${analysisType === t ? 'bg-zinc-900 text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-600'}
+                                            `}
+                                        >
+                                            {t}
+                                        </button>
+                                    ))}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        <div className="flex gap-1 md:gap-2 p-1 bg-zinc-100 rounded-full z-10">
+                            {['camera', 'upload'].map((m) => (
+                                <button
+                                    key={m}
+                                    onClick={() => {
+                                        setMode(m);
+                                        if (m === 'camera' && analysisType === 'patch') {
+                                            setAnalysisType('full');
+                                        }
+                                    }}
+                                    className={`
+                                        px-4 py-1.5 md:px-4 md:py-2 rounded-full text-[10px] md:text-xs font-bold tracking-widest uppercase transition-all duration-300
+                                        ${mode === m ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-400 hover:text-zinc-600'}
+                                    `}
+                                >
+                                    {m}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
@@ -503,16 +635,18 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                             {mode === 'camera' ? 'Face Analysis' : 'Upload Source'}
                         </h1>
                         <p className="text-zinc-500 font-light text-sm md:text-lg max-w-xs mx-auto md:max-w-none">
-                            {mode === 'camera' ? 'Align your face within the frame.' : 'Select a high-resolution portrait.'}
+                            {mode === 'camera'
+                                ? (analysisType === 'full' ? 'Align your face within the frame.' : 'Center the specific skin area.')
+                                : 'Select a high-resolution portrait.'}
                         </p>
                     </div>
 
                     {/* Dynamic Controls */}
                     <div className="w-full max-w-sm space-y-6 md:space-y-10">
 
-                        {/* 1. Validation Grid (Only Camera) */}
+                        {/* 1. Validation Grid */}
                         <AnimatePresence mode="wait">
-                            {mode === 'camera' && (
+                            {mode === 'camera' && analysisType === 'full' && (
                                 <motion.div
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
@@ -524,7 +658,7 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                             )}
                         </AnimatePresence>
 
-                        {/* 2. Upload Area (Only Upload) */}
+                        {/* 2. Upload Area */}
                         {mode === 'upload' && (
                             <motion.label
                                 initial={{ opacity: 0 }} animate={{ opacity: 1 }}
@@ -543,12 +677,10 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                                 disabled={!canCapture}
                                 className="relative group outline-none"
                             >
-                                {/* Active Ring Animation */}
                                 {canCapture && (
                                     <span className="absolute inset-0 rounded-full border border-zinc-900/30 animate-[ping_2s_ease-in-out_infinite]" />
                                 )}
 
-                                {/* Button Container */}
                                 <div className={`
                                     w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center transition-all duration-500
                                     ${canCapture
@@ -556,9 +688,15 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                                         : 'bg-zinc-100 border border-zinc-200 cursor-not-allowed opacity-50'}
                                 `}>
                                     {canCapture ? (
-                                        <div className="relative">
-                                            <Aperture className="w-8 h-8 md:w-10 md:h-10 text-white" strokeWidth={1.5} />
-                                        </div>
+                                        countdown !== null && countdown > 0 ? (
+                                            <span className="text-3xl md:text-4xl font-light text-white animate-pulse">
+                                                {countdown}
+                                            </span>
+                                        ) : (
+                                            <div className="relative">
+                                                <Aperture className="w-8 h-8 md:w-10 md:h-10 text-white" strokeWidth={1.5} />
+                                            </div>
+                                        )
                                     ) : (
                                         <div className="w-3 h-3 rounded-full bg-zinc-300" />
                                     )}
@@ -566,7 +704,7 @@ export default function SmartCameraPage({ initialMode = 'camera' }) {
                             </button>
 
                             <span className={`mt-4 md:mt-6 text-[9px] md:text-[10px] font-bold tracking-[0.3em] uppercase transition-colors duration-300 ${canCapture ? 'text-zinc-900' : 'text-zinc-300'}`}>
-                                {isAnalyzing ? 'ANALYZING...' : canCapture ? 'START SCAN' : 'WAITING FOR SIGNAL'}
+                                {isAnalyzing ? 'ANALYZING...' : canCapture ? (countdown !== null && countdown > 0 ? 'HOLD STILL' : 'START SCAN') : 'WAITING FOR SIGNAL'}
                             </span>
                         </div>
 

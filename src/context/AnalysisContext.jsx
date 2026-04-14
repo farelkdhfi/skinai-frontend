@@ -15,7 +15,7 @@ export function AnalysisProvider({ children }) {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [error, setError] = useState(null);
 
-    const analyze = useCallback(async (images, fullImage = null) => {
+    const analyze = useCallback(async (images, fullImage = null, bboxes = null) => {
         setIsAnalyzing(true);
         setError(null);
 
@@ -24,7 +24,14 @@ export function AnalysisProvider({ children }) {
         setPatches(fullImage ? { ...images, full_image: fullImage } : images);
 
         try {
-            const response = await analyzeAPI.analyze(images);
+
+            const payload = {
+                images: images,
+                full_face_image: fullImage,
+                bounding_boxes: bboxes && Object.keys(bboxes).length > 0 ? bboxes : null
+            };
+
+            const response = await analyzeAPI.analyze(payload);
             setResults(response.data);
 
             // Get recommendations
@@ -64,11 +71,9 @@ export function AnalysisProvider({ children }) {
                 heatmap_image: results.gradcam_heatmaps?.[p.region] || null
             })),
             image: patches['full_image'] || patches['camera_capture'] || null, // Fallback if full_image was passed differently
-            heatmap_image: results.gradcam_heatmaps?.['full_image'] || null,
+            heatmap_image: results.cfcm_image || results.gradcam_heatmaps?.['full_image'] || null,
             recommended_ingredients: recommendations?.ingredients || recommendations || []
         };
-
-
 
         try {
             await historyAPI.save(analysisData);

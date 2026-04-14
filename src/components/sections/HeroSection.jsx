@@ -57,7 +57,7 @@ const HeroSection = () => {
                     transition={{ duration: 0.5, delay: 0.6 }}
                     className="pt-2 md:pt-0"
                 >
-                    <Link to={ROUTES?.ANALYZE || '#'} className="group relative inline-flex h-12 md:h-14 items-center justify-center overflow-hidden rounded-full bg-[#111] px-6 md:px-8 font-medium text-neutral-50 transition-all hover:bg-neutral-800 w-44 md:w-48 hover:w-48 md:hover:w-52">
+                    <Link to={ROUTES?.INTRO_WEB || '#'} className="group relative inline-flex h-12 md:h-14 items-center justify-center overflow-hidden rounded-full bg-[#111] px-6 md:px-8 font-medium text-neutral-50 transition-all hover:bg-neutral-800 w-44 md:w-48 hover:w-48 md:hover:w-52">
                         <div className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-12deg)_translateX(-100%)] group-hover:duration-1000 group-hover:[transform:skew(-12deg)_translateX(100%)]">
                             <div className="relative h-full w-8 bg-white/20" />
                         </div>

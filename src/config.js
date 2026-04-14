@@ -3,9 +3,10 @@
  */
 
 // API Configuration
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
-export const ML_SERVICE_URL = import.meta.env.VITE_ML_URL || 'http://localhost:5000';
+const currentHost = window.location.hostname;
 
+export const API_URL = import.meta.env.VITE_API_URL || '/api';
+export const ML_SERVICE_URL = import.meta.env.VITE_ML_URL || 'http://localhost:5000';
 // Face Mesh Configuration
 export const FACE_MESH_CONFIG = {
     maxNumFaces: 1,
@@ -47,7 +48,7 @@ export const CAMERA_CONFIG = {
 // Validation Thresholds
 export const VALIDATION_THRESHOLDS = {
     brightness: { min: 100, max: 200 }, 
-    roiMinArea: 0.6,                    
+    roiMinArea: 0.3,                    
     landmarkConfidence: 0.9,            
     maxYaw: 15,                     
     maxPitch: 20,
@@ -74,4 +75,6 @@ export const ROUTES = {
     REGISTER: '/register',
     LIVECAM: '/analyze/live',
     UPLOAD: '/analyze/upload',
+    HISTORY_LIST: '/history-list',
+    INTRO_WEB: '/skinai-introduction'
 };

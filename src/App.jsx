@@ -13,6 +13,8 @@ import DashboardPage from './pages/DashboardPage';
 import HistoryDetailPage from './pages/HistoryDetailPage';
 import AuthPage from './pages/AuthPage';
 import Home from './pages/HomePage';
+import HistoryListPage from './pages/HistoryListPage';
+import IntroWebPage from './pages/IntroWebPage';
 
 function App() {
   return (
@@ -25,10 +27,14 @@ function App() {
                 {/* Home */}
                 <Route path={ROUTES.HOME} element={<Home />} />
 
+                {/* Intro Page */}
+                <Route path={ROUTES.INTRO_WEB} element={<IntroWebPage />} />
+
                 {/* Main pages */}
                 <Route path={ROUTES.RESULTS} element={<ResultsPage />} />
                 <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
                 <Route path="/history/:id" element={<HistoryDetailPage />} />
+                <Route path={ROUTES.HISTORY_LIST} element={<HistoryListPage />} />
 
                 {/* Analysis Routes */}
                 <Route path={ROUTES.ANALYZE} element={<AnalyzeIntroPage />} />
